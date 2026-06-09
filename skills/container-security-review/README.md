@@ -14,13 +14,13 @@ See [USAGE.md](./USAGE.md) for invocation examples and workflow.
 Install via the skills CLI from any project where Claude Code is active:
 
 ```bash
-npx skills add chaozhang-nci/agentskills@container-security-review
+npx skills add essentialsoft/agentskills@container-security-review
 ```
 
 To skip the confirmation prompt:
 
 ```bash
-npx skills add chaozhang-nci/agentskills@container-security-review -y
+npx skills add essentialsoft/agentskills@container-security-review -y
 ```
 
 After installing, check for updates at any time:
