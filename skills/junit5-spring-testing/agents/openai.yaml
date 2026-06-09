@@ -1,0 +1,3 @@
+interface:
+  display_name: "JUnit 5 Spring Testing"
+  short_description: "Write focused JUnit 5 and Spring Boot tests."
