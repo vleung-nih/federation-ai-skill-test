@@ -9,6 +9,14 @@
 *.log
 *.tmp
 
+# Local tooling state
+.superpowers/
+
+# Accidental root npm artifacts
+/node_modules/
+/package.json
+/package-lock.json
+
 # Environment files
 .env
 .env.*
