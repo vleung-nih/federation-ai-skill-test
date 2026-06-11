@@ -30,7 +30,7 @@ This skill is intentionally stricter than a general security review. Do not stop
 - For `MODE=ecr`: ECR image reference to scan.
 - For `MODE=local`: Dockerfile path, local image tag, and local build command. Prefer an existing repo script such as `backend/build-local-image.sh`; otherwise use `docker build -f <Dockerfile> -t <image> <context>`.
 - Twistlock Console URL. Default to `https://twistlock.nci.nih.gov` only when the repo/user context clearly uses NCI Twistlock.
-- For `MODE=ecr`: Prefect Cloud credentials and workspace, plus optional `TWISTLOCK_ADDRESS`.
+- For `MODE=ecr`: Prefect Cloud login, API URL, and workspace, plus optional `TWISTLOCK_ADDRESS`.
 - For `MODE=local`: Twistlock credentials in an env file or environment. Prefer `TWISTLOCK_TOKEN`; otherwise generate a short-lived token from `TWISTLOCK_USERNAME` and `TWISTLOCK_PASSWORD`.
 
 ## Safety Rules
@@ -96,9 +96,9 @@ Credential requirements depend on mode.
 
 For `MODE=ecr`, validate Prefect access:
 
-- `PREFECT_API_KEY`
 - `PREFECT_API_URL`
 - Prefect workspace selected or known
+- Either an existing Prefect login or `PREFECT_API_KEY`
 - Optional `TWISTLOCK_ADDRESS`
 
 Check common env file locations without printing values:
@@ -109,22 +109,42 @@ for f in .env backend/.env deploy/.env scripts/.env; do
 done
 ```
 
-If Prefect credentials are absent, ask the user to configure them in the environment or a repo-local env file. Do not ask the user to paste secrets into chat.
+If Prefect credentials are absent, guide the user to log in directly with the Prefect CLI. Do not ask the user to paste secrets into chat.
 
-Log in and set the workspace before running the deployment:
+Use the Prefect Cloud API URL provided by the user or repo. For the NCI workspace used in this workflow, the API URL may be:
+
+```bash
+export PREFECT_API_URL="https://api.prefect.cloud/api/accounts/90cb3bf5-1af1-44fa-8a6d-a1f111368e02/workspaces/5dd67daa-115c-40e2-92ad-8d6776766257"
+```
+
+Prefer direct user login when no API key is already configured:
+
+```bash
+export PREFECT_API_URL="https://api.prefect.cloud/api/accounts/90cb3bf5-1af1-44fa-8a6d-a1f111368e02/workspaces/5dd67daa-115c-40e2-92ad-8d6776766257"
+uv run prefect cloud login
+```
+
+The command may open a browser or print a login URL. Ask the user to complete login themselves, then continue only after they confirm login completed.
+
+If the user already has an API key in a repo-local env file, load it without printing values and log in non-interactively:
 
 ```bash
 set -a
 . backend/.env
 set +a
 
-prefect cloud login --key "$PREFECT_API_KEY" --workspace "<account>/<workspace>"
-prefect cloud workspace set --workspace "<account>/<workspace>"
+uv run prefect cloud login --key "$PREFECT_API_KEY" --workspace "<account>/<workspace>"
 ```
 
 If the workspace is unknown, ask:
 
 > Which Prefect Cloud workspace should I use for the Twistlock scan deployment? Example: `<account>/<workspace>`
+
+Set the workspace when the CLI requires the account/workspace slug:
+
+```bash
+uv run prefect cloud workspace set --workspace "<account>/<workspace>"
+```
 
 Confirm the deployment is available:
 
