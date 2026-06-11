@@ -3,7 +3,7 @@ name: dockerfile-twistlock-zero-high
 version: 1.0.0
 author: essentialsoft
 license: MIT
-description: "Use when a Docker image from either ECR registry or a local Docker build must be scanned with Twistlock/Prisma Cloud twistcli and remediated until Critical and High vulnerabilities are zero. Applies to choosing ECR-vs-local scan mode, repo build scripts, generated Twistlock tokens, VPN/TLS-intercepted package updates, and iterative Dockerfile/base-image/OS-package fixes."
+description: "Use when a Docker image from either ECR registry or a local Docker build must be scanned with Twistlock/Prisma Cloud and remediated until Critical and High vulnerabilities are zero. Applies to choosing ECR-vs-local scan mode, Prefect Twistlock deployment runs for ECR images, local twistcli scans, generated Twistlock tokens, VPN/TLS-intercepted package updates, and iterative Dockerfile/base-image/OS-package fixes."
 argument-hint: "Provide the repo path and either an ECR image ref or local image tag. Example: 'Scan this repo with Twistlock; ask whether to use ECR or local image, then fix Critical/High findings until zero.'"
 user-invocable: true
 ---
@@ -19,6 +19,8 @@ Supported target modes:
 1. **ECR registry image** — scan an already built/pushed image reference such as `123456789012.dkr.ecr.us-east-1.amazonaws.com/app:tag`.
 2. **Local Docker image** — build or use a local Docker image tag such as `bento-sts:twistlock-candidate`.
 
+ECR mode uses the Prefect deployment pattern from CBIIT `build-sts.yml`: authenticate to Prefect, set the user's workspace, run `twistlock-scan/twistlock-scan` with `image_ref`, wait for completion, and use the deployment output as the scan decision record. Local mode uses `twistcli images scan` against the local Docker image.
+
 This skill is intentionally stricter than a general security review. Do not stop after finding vulnerabilities. Continue the build-scan-fix loop until the policy gate passes or a hard stop is reached.
 
 ## Required Inputs
@@ -28,7 +30,8 @@ This skill is intentionally stricter than a general security review. Do not stop
 - For `MODE=ecr`: ECR image reference to scan.
 - For `MODE=local`: Dockerfile path, local image tag, and local build command. Prefer an existing repo script such as `backend/build-local-image.sh`; otherwise use `docker build -f <Dockerfile> -t <image> <context>`.
 - Twistlock Console URL. Default to `https://twistlock.nci.nih.gov` only when the repo/user context clearly uses NCI Twistlock.
-- Twistlock credentials in an env file or environment. Prefer `TWISTLOCK_TOKEN`; otherwise generate a short-lived token from `TWISTLOCK_USERNAME` and `TWISTLOCK_PASSWORD`.
+- For `MODE=ecr`: Prefect Cloud credentials and workspace, plus optional `TWISTLOCK_ADDRESS`.
+- For `MODE=local`: Twistlock credentials in an env file or environment. Prefer `TWISTLOCK_TOKEN`; otherwise generate a short-lived token from `TWISTLOCK_USERNAME` and `TWISTLOCK_PASSWORD`.
 
 ## Safety Rules
 
@@ -37,7 +40,8 @@ This skill is intentionally stricter than a general security review. Do not stop
 - Never assume local build is possible. Ask the user to choose ECR registry scan or local Docker image scan when mode is not explicit.
 - Never claim success from Dockerfile inspection. Success requires a fresh Twistlock scan of the selected image.
 - For `MODE=local`, prefer the repo build script over an invented build command when one exists.
-- For `MODE=ecr`, do not edit the local repo before the first scan unless the user explicitly asks for source remediation first.
+- For `MODE=ecr`, do not run local `twistcli` against ECR as the primary path. Use the Prefect `twistlock-scan/twistlock-scan` deployment and base the decision on its watched result.
+- For `MODE=ecr`, do not edit the local repo before the first Prefect scan unless the user explicitly asks for source remediation first.
 - Do not make broad product/runtime changes unless the scan evidence requires it.
 - Do not weaken package transport security, such as changing package repositories from HTTPS to HTTP, unless the user explicitly accepts that risk.
 - If VPN or TLS interception breaks package manager TLS, use a build-time secret CA only. Do not bake enterprise CA files into the final image.
@@ -86,7 +90,55 @@ For `MODE=ecr`, ask for the ECR image ref if missing:
 
 For `MODE=local`, ask for the local image tag if missing. Default to `<repo-name>:twistlock-candidate` only after the user chooses local mode.
 
-### 3. Validate Twistlock credentials
+### 3. Validate scan credentials
+
+Credential requirements depend on mode.
+
+For `MODE=ecr`, validate Prefect access:
+
+- `PREFECT_API_KEY`
+- `PREFECT_API_URL`
+- Prefect workspace selected or known
+- Optional `TWISTLOCK_ADDRESS`
+
+Check common env file locations without printing values:
+
+```bash
+for f in .env backend/.env deploy/.env scripts/.env; do
+  [ -f "$f" ] && echo "$f"
+done
+```
+
+If Prefect credentials are absent, ask the user to configure them in the environment or a repo-local env file. Do not ask the user to paste secrets into chat.
+
+Log in and set the workspace before running the deployment:
+
+```bash
+set -a
+. backend/.env
+set +a
+
+prefect cloud login --key "$PREFECT_API_KEY" --workspace "<account>/<workspace>"
+prefect cloud workspace set --workspace "<account>/<workspace>"
+```
+
+If the workspace is unknown, ask:
+
+> Which Prefect Cloud workspace should I use for the Twistlock scan deployment? Example: `<account>/<workspace>`
+
+Confirm the deployment is available:
+
+```bash
+uv run prefect deployment inspect twistlock-scan/twistlock-scan
+```
+
+If `uv` or Prefect is unavailable, follow the CBIIT workflow pattern:
+
+```bash
+uv pip install --system "prefect==3.3.4"
+```
+
+For `MODE=local`, validate Twistlock access:
 
 Before scanning, verify credentials exist in either the environment or a repo-local env file.
 
@@ -145,7 +197,7 @@ For `MODE=local`, run the selected build command. If it fails:
 - Base image pull DNS/TLS failure: diagnose the local Docker/VPN context before editing the Dockerfile.
 - Package manager TLS failure inside the build: see "VPN and CA handling".
 
-For `MODE=ecr`, do not build locally. Confirm the image reference is syntactically valid and proceed to the Twistlock scan. If the scanner or registry cannot access the ECR image, stop and report the image-access blocker.
+For `MODE=ecr`, do not build locally. Confirm the image reference is syntactically valid and proceed to the Prefect Twistlock deployment. If the deployment cannot access the ECR image, stop and report the image-access blocker.
 
 ### 6. Capture OS/package evidence
 
@@ -157,11 +209,11 @@ docker run --rm --entrypoint sh <image> -c 'cat /etc/os-release; apk list --inst
 
 Save the important OS and package versions in the final response.
 
-For `MODE=ecr`, local OS/package evidence may be unavailable before the scan. Use Twistlock output as the package evidence source.
+For `MODE=ecr`, local OS/package evidence may be unavailable before the scan. Use Prefect/Twistlock output as the package evidence source.
 
-### 7. Generate a Twistlock token when needed
+### 7. Generate a Twistlock token when needed (MODE=local only)
 
-If `TWISTLOCK_TOKEN` is absent but username/password are available, generate a token in memory only:
+Skip this step for `MODE=ecr`; Prefect deployment authentication is handled by Prefect credentials. If `MODE=local` and `TWISTLOCK_TOKEN` is absent but username/password are available, generate a token in memory only:
 
 ```bash
 set -a
@@ -187,12 +239,58 @@ Never echo `TOKEN`.
 
 ### 8. Run Twistlock image scan
 
+Use the mode-specific scan runner.
+
+#### MODE=ecr: run Prefect Twistlock deployment
+
+This is the primary path for images already pushed to ECR. It mirrors the CBIIT `build-sts.yml` workflow.
+
+Prerequisites:
+
+- Prefect is authenticated.
+- Correct Prefect workspace is selected.
+- Deployment `twistlock-scan/twistlock-scan` exists in that workspace.
+- `jq` is available.
+
+Run:
+
+```bash
+mkdir -p .twistlock-runs/baseline
+
+IMAGE_REF="<ecr-image-ref>"
+if [ -n "${TWISTLOCK_ADDRESS:-}" ]; then
+  PARAMS=$(jq -n \
+    --arg image_ref "$IMAGE_REF" \
+    --arg twistlock_address "$TWISTLOCK_ADDRESS" \
+    '{image_ref: $image_ref, twistlock_address: $twistlock_address}')
+else
+  PARAMS=$(jq -n \
+    --arg image_ref "$IMAGE_REF" \
+    '{image_ref: $image_ref}')
+fi
+
+printf '%s\n' "$PARAMS" > .twistlock-runs/baseline/prefect-params.json
+
+uv run prefect deployment run twistlock-scan/twistlock-scan \
+  --params "$PARAMS" \
+  --watch \
+  --watch-interval 30 \
+  > .twistlock-runs/baseline/prefect-twistlock.stdout \
+  2> .twistlock-runs/baseline/prefect-twistlock.stderr
+```
+
+The watched Prefect run is the scan of record for ECR mode. Read the run output and any linked report/artifacts it prints. Use those results to decide whether the Critical/High gate passed.
+
+If the Prefect run fails:
+
+- Authentication/workspace error: ask the user to log in or provide the correct workspace.
+- Deployment not found: stop and report that `twistlock-scan/twistlock-scan` is unavailable in the selected workspace.
+- Image access error: stop and report the ECR image reference/access blocker.
+- Twistlock permission error: stop and report the Twistlock permission blocker.
+
+#### MODE=local: run local twistcli image scan
+
 Use the repo-local `./twistcli` if present; otherwise locate a compatible `twistcli`.
-
-For both modes, the scan command uses `twistcli images scan`. The image argument differs:
-
-- `MODE=ecr`: use the ECR image reference.
-- `MODE=local`: use the local image tag.
 
 ```bash
 mkdir -p .twistlock-runs/baseline
@@ -212,7 +310,9 @@ If the scanner returns `403 ... custom-compliance ... policyComplianceCustomRule
 
 ### 9. Extract the gate result
 
-Read scanner stdout and identify:
+For `MODE=ecr`, read `.twistlock-runs/baseline/prefect-twistlock.stdout`, Prefect run links, and any report path printed by the deployment.
+
+For `MODE=local`, read scanner stdout and identify:
 
 ```text
 Vulnerabilities found for image <image>: total - N, critical - C, high - H, medium - M, low - L
@@ -235,7 +335,7 @@ Prefer fixes in this order:
 
 Do not switch distro families unless trying base-image candidates shows the current family cannot reach the fixed package safely. Candidate switches can introduce more Critical/High findings.
 
-For `MODE=ecr`, local repo changes can only affect future images. After applying a Dockerfile or dependency fix, the user must rebuild/push a new ECR image or switch to `MODE=local` for validation. Ask which validation path to use.
+For `MODE=ecr`, local repo changes can only affect future images. After applying a Dockerfile or dependency fix, the user must rebuild/push a new ECR image or switch to `MODE=local` for validation. Ask which validation path to use. If they choose ECR validation, ask for the new ECR image ref and rerun the Prefect deployment.
 
 For `MODE=local`, rebuild the local image and rescan it.
 
@@ -285,7 +385,7 @@ After each fix:
 <twistlock-scan-command>
 ```
 
-For `MODE=ecr`, replace `<build-command>` with the user's remote build/push process, or ask the user for the new ECR image ref before rescanning.
+For `MODE=ecr`, replace `<build-command>` with the user's remote build/push process, or ask the user for the new ECR image ref before rescanning through Prefect.
 
 Repeat until Critical and High are zero or a hard stop is reached.
 
@@ -294,6 +394,8 @@ Repeat until Critical and High are zero or a hard stop is reached.
 Stop and report clearly when:
 
 - Twistlock credentials cannot generate a token.
+- Prefect credentials or workspace are missing for `MODE=ecr`.
+- Prefect deployment `twistlock-scan/twistlock-scan` is unavailable in the selected workspace.
 - `twistcli` requires permissions the account does not have.
 - User does not provide either an ECR image ref or permission to build/use a local Docker image.
 - `MODE=ecr` is selected but no new ECR image is available after a source fix.
