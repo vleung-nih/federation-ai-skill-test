@@ -126,15 +126,13 @@ uv run prefect cloud login
 
 The command may open a browser or print a login URL. Ask the user to complete login themselves, then continue only after they confirm login completed.
 
-If the user already has an API key in a repo-local env file, load it without printing values and log in non-interactively:
+If the user already has `PREFECT_API_KEY` exported in their shell or provided by CI, log in non-interactively:
 
 ```bash
-set -a
-. backend/.env
-set +a
-
 uv run prefect cloud login --key "$PREFECT_API_KEY" --workspace "<account>/<workspace>"
 ```
+
+Do not assume Prefect credentials live in `backend/.env`; that is a repo-specific exception, not the default workflow.
 
 If the workspace is unknown, ask:
 
