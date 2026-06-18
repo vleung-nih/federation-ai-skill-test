@@ -35,6 +35,7 @@ This skill is intentionally stricter than a general security review. Do not stop
 
 ## Safety Rules
 
+- When the user explicitly asks for Twistlock/Prisma Cloud, use Twistlock/Prisma Cloud only. Do not substitute Trivy, Snyk, Docker Scout, or another scanner for the gate.
 - Never print, commit, or store secrets, passwords, or generated Twistlock tokens.
 - Never suppress, waive, downgrade, hide, or ignore scanner findings as a fix.
 - Never assume local build is possible. Ask the user to choose ECR registry scan or local Docker image scan when mode is not explicit.
@@ -163,6 +164,7 @@ Before scanning, verify credentials exist in either the environment or a repo-lo
 Accepted variables:
 
 - `TWISTLOCK_TOKEN`
+- `TWISTLOCK_USER`
 - `TWISTLOCK_USERNAME`
 - `TWISTLOCK_PASSWORD`
 - `TWISTLOCK_ADDRESS` (optional)
@@ -186,7 +188,7 @@ set +a
 Credential paths:
 
 - If `TWISTLOCK_TOKEN` is present, use it directly.
-- If `TWISTLOCK_TOKEN` is absent but `TWISTLOCK_USERNAME` and `TWISTLOCK_PASSWORD` are present, generate a short-lived token in memory.
+- If `TWISTLOCK_TOKEN` is absent but either `TWISTLOCK_USER` or `TWISTLOCK_USERNAME` and `TWISTLOCK_PASSWORD` are present, generate a short-lived token in memory or pass the username/password to `twistcli` when supported.
 - If neither path is available, stop and ask the user to add credentials to an env file or environment. Do not ask the user to paste secrets into chat.
 
 ### 4. Identify local build command (MODE=local only)
@@ -326,6 +328,40 @@ mkdir -p .twistlock-runs/baseline
 
 If the scanner returns `403 ... custom-compliance ... policyComplianceCustomRules`, credentials are valid but the account lacks a permission `twistcli` requires. Stop and report that permission blocker.
 
+### Local twistcli details
+
+For local scans, prefer a native `twistcli` binary compatible with the host:
+
+1. Repo-local `./twistcli`
+2. User-provided scanner path
+3. A known local native scanner path, if present, such as `/Users/yoos4/PycharmProjects/twistlock-scanner/twistcli` on macOS
+
+Do not use a Linux `twistcli` binary directly on macOS. Do not switch to a privileged scanner container merely to work around a host binary mismatch, because that can expose repo-local credentials and Docker socket access more broadly than needed.
+
+When scanning a local Docker image, prefer scanning by image ID and pass the Docker socket explicitly:
+
+```bash
+set -a
+. .env
+set +a
+
+USER_VALUE="${TWISTLOCK_USER:-${TWISTLOCK_USERNAME:-}}"
+PASS_VALUE="${TWISTLOCK_PASSWORD:-}"
+ADDR_VALUE="${TWISTLOCK_ADDRESS:-https://twistlock.nci.nih.gov}"
+IMG_ID=$(docker image inspect "$IMAGE_REF" --format "{{.Id}}")
+
+"$TWISTCLI" images scan \
+  --address "$ADDR_VALUE" \
+  --user "$USER_VALUE" \
+  --password "$PASS_VALUE" \
+  --docker-address unix:///var/run/docker.sock \
+  --details \
+  --output-file .twistlock-runs/baseline/twistcli-results.json \
+  "$IMG_ID" \
+  > .twistlock-runs/baseline/twistcli.stdout \
+  2> .twistlock-runs/baseline/twistcli.stderr
+```
+
 ### 9. Extract the gate result
 
 For `MODE=ecr`, read `.twistlock-runs/baseline/prefect-twistlock.stdout`, Prefect run links, and any report path printed by the deployment.
@@ -341,7 +377,21 @@ Gate:
 - Pass: `critical - 0, high - 0`
 - Fail: any Critical or High finding
 
+If using JSON output, handle empty result arrays defensively. Some Twistlock JSON reports use `null` instead of `[]` when there are no vulnerabilities:
+
+```bash
+jq -r '(.results[0].vulnerabilities // [])[] | select((.severity|ascii_downcase) == "critical" or (.severity|ascii_downcase) == "high")' \
+  .twistlock-runs/baseline/twistcli-results.json
+```
+
 Group Critical/High findings by package, installed version, and fixed version. Fix package groups, not individual CVEs, when they share the same root cause.
+
+Also inspect High/Critical compliance results when the Twistlock output reports compliance findings. They are not CVEs, but they can still fail an image security gate. A common Docker CIS High is "Image should be created with a non-root user"; the minimal Dockerfile fix is usually to chown copied runtime artifacts and add a numeric non-root `USER`, for example:
+
+```dockerfile
+COPY --from=builder --chown=10001:10001 /app/output /app/output
+USER 10001
+```
 
 ### 10. Apply the smallest safe fix
 
@@ -394,6 +444,8 @@ fi
 
 Create `.twistlock-runs/nci-ca.pem` only from a trusted local keychain or user-provided CA. Treat it as a local artifact, not application source.
 
+If Maven, DNF, APK, or another package manager fails with a self-signed or intercepted certificate error, diagnose the local trust/VPN context before changing dependencies. Do not add insecure repository URLs or commit trust-store bypasses. If a full rebuild is temporarily blocked but a previously built application artifact is available, it is acceptable to build a clearly marked final-stage-only verification image to validate runtime hardening with Twistlock. Report that limitation explicitly; do not pretend it was a clean full source rebuild.
+
 ### 12. Rebuild/reselect and rescan
 
 After each fix:
@@ -443,3 +495,16 @@ Validation:
 ```
 
 Only say the gate passed after the final scan shows `critical - 0, high - 0`.
+
+## Local Artifact Hygiene
+
+For local Docker builds, keep scanner artifacts and secrets out of the Docker context. Add or verify `.dockerignore` entries such as:
+
+```dockerignore
+.env
+.git/
+.twistlock-runs/
+target/
+```
+
+If the Dockerfile uses `COPY . .`, consider ignoring `Dockerfile` too when Dockerfile-only changes should not invalidate expensive application dependency build layers. Do this only when the Dockerfile itself is not needed inside the application build context.
