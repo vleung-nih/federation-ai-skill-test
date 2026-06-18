@@ -188,7 +188,17 @@ Credential paths:
 
 - If `TWISTLOCK_TOKEN` is present, use it directly.
 - If `TWISTLOCK_TOKEN` is absent but `TWISTLOCK_USERNAME` and `TWISTLOCK_PASSWORD` are present, generate a short-lived token in memory or pass the username/password to `twistcli` when supported.
-- If neither path is available, stop and ask the user to add credentials to an env file or environment. Do not ask the user to paste secrets into chat.
+- If neither path is available, guide the user to add credentials to a repo-local env file or their shell environment, then retry the credential preflight before scanning. Do not ask the user to paste secrets into chat.
+
+Recommended repo-local `.env` entries:
+
+```dotenv
+TWISTLOCK_USERNAME=<your Twistlock username>
+TWISTLOCK_PASSWORD=<your Twistlock password>
+TWISTLOCK_ADDRESS=https://twistlock.nci.nih.gov
+```
+
+Tell the user to add the real values directly on their machine, not in chat. After they confirm the file or environment has been updated, re-check only whether the variables are set; never print their values.
 
 ### 4. Identify local build command (MODE=local only)
 
