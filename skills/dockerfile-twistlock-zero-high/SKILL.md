@@ -31,7 +31,7 @@ This skill is intentionally stricter than a general security review. Do not stop
 - For `MODE=local`: Dockerfile path, local image tag, and local build command. Prefer an existing repo script such as `backend/build-local-image.sh`; otherwise use `docker build -f <Dockerfile> -t <image> <context>`.
 - Twistlock Console URL. Default to `https://twistlock.nci.nih.gov` only when the repo/user context clearly uses NCI Twistlock.
 - For `MODE=ecr`: Prefect Cloud login, API URL, and workspace, plus optional `TWISTLOCK_ADDRESS`.
-- For `MODE=local`: Twistlock credentials in an env file or environment. Prefer `TWISTLOCK_TOKEN`; otherwise generate a short-lived token from `TWISTLOCK_USER` and `TWISTLOCK_PASSWORD`.
+- For `MODE=local`: Twistlock credentials in an env file or environment. Prefer `TWISTLOCK_TOKEN`; otherwise generate a short-lived token from `TWISTLOCK_USERNAME` and `TWISTLOCK_PASSWORD`.
 
 ## Safety Rules
 
@@ -164,7 +164,7 @@ Before scanning, verify credentials exist in either the environment or a repo-lo
 Accepted variables:
 
 - `TWISTLOCK_TOKEN`
-- `TWISTLOCK_USER`
+- `TWISTLOCK_USERNAME`
 - `TWISTLOCK_PASSWORD`
 - `TWISTLOCK_ADDRESS` (optional)
 
@@ -187,7 +187,7 @@ set +a
 Credential paths:
 
 - If `TWISTLOCK_TOKEN` is present, use it directly.
-- If `TWISTLOCK_TOKEN` is absent but `TWISTLOCK_USER` and `TWISTLOCK_PASSWORD` are present, generate a short-lived token in memory or pass the username/password to `twistcli` when supported.
+- If `TWISTLOCK_TOKEN` is absent but `TWISTLOCK_USERNAME` and `TWISTLOCK_PASSWORD` are present, generate a short-lived token in memory or pass the username/password to `twistcli` when supported.
 - If neither path is available, stop and ask the user to add credentials to an env file or environment. Do not ask the user to paste secrets into chat.
 
 ### 4. Identify local build command (MODE=local only)
@@ -242,7 +242,7 @@ set +a
 AUTH_JSON=$(python3 - <<'PY'
 import json, os
 print(json.dumps({
-    "username": os.environ["TWISTLOCK_USER"],
+    "username": os.environ["TWISTLOCK_USERNAME"],
     "password": os.environ["TWISTLOCK_PASSWORD"],
 }))
 PY
@@ -316,7 +316,7 @@ mkdir -p .twistlock-runs/baseline
 
 ./twistcli images scan \
   --address "${TWISTLOCK_ADDRESS:-https://twistlock.nci.nih.gov}" \
-  --user "$TWISTLOCK_USER" \
+  --user "$TWISTLOCK_USERNAME" \
   --token "$TOKEN" \
   --details \
   --output-file .twistlock-runs/baseline/twistcli-results.json \
@@ -344,7 +344,7 @@ set -a
 . .env
 set +a
 
-USER_VALUE="${TWISTLOCK_USER:-}"
+USER_VALUE="${TWISTLOCK_USERNAME:-}"
 PASS_VALUE="${TWISTLOCK_PASSWORD:-}"
 ADDR_VALUE="${TWISTLOCK_ADDRESS:-https://twistlock.nci.nih.gov}"
 IMG_ID=$(docker image inspect "$IMAGE_REF" --format "{{.Id}}")
