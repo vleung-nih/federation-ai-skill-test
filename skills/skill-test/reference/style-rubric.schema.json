@@ -1,0 +1,72 @@
+{
+  "type": "object",
+  "properties": {
+    "overall_pass": {
+      "type": "boolean"
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "semantic_match_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "completeness_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "correctness_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "comparison_summary": {
+      "type": "string"
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "pass": {
+            "type": "boolean"
+          },
+          "expected_evidence": {
+            "type": "string"
+          },
+          "actual_evidence": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "pass",
+          "expected_evidence",
+          "actual_evidence",
+          "notes"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "overall_pass",
+    "score",
+    "semantic_match_score",
+    "completeness_score",
+    "correctness_score",
+    "comparison_summary",
+    "checks"
+  ],
+  "additionalProperties": false
+}
