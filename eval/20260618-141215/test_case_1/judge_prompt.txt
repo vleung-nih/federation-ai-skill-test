@@ -1,0 +1,85 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    test_case_1
+
+Expected Output:
+    To search individual member data in the CCDI Data Federation, you have two options:
+
+Option 1 (Centralized): Query the unified Data Federation Resource API and use filter criteria (like namespaces or source identifiers) to isolate results from a specific repository.
+
+Option 2 (Direct): Query an individual member's server directly. Every member implements the same standard CCDI Data Federation API Specification, allowing you to hit their specific /subjects, /samples, or /files endpoints to extract member-specific metadata.
+
+Actual Output:
+    To search an individual CCDI Federation member, call that member’s own API base URL, then use the same entity endpoints and query parameters.
+
+Example member base URLs from the current official OpenAPI spec:
+
+```text
+https://ccdi.stjude.cloud/api/v1
+https://ccdifederation.pedscommons.org/api/v1
+https://ccdi.treehouse.gi.ucsc.edu/api/v1
+https://ccdi.kidsfirstdrc.org/api/v1
+https://ccdi-ecdna.org/ccdi-federation/api/v1
+https://ccdi.ipo.sulab.io/api/v1
+https://dcc.ccdi.cancer.gov/api/v1
+```
+
+Common searches:
+
+```bash
+# Search samples in one member by exact diagnosis value
+curl 'https://ccdi.kidsfirstdrc.org/api/v1/sample?diagnosis=Neuroblastoma&per_page=25&page=1'
+
+# Experimental free-text diagnosis search on subjects
+curl 'https://ccdi.kidsfirstdrc.org/api/v1/subject-diagnosis?search=glioma&per_page=25&page=1'
+
+# Search files in one member
+curl 'https://ccdi.kidsfirstdrc.org/api/v1/file?type=bam&per_page=25&page=1'
+
+# Get one exact entity once you know its organization, namespace, and name
+curl 'https://ccdi.kidsfirstdrc.org/api/v1/sample/{organization}/{namespace}/{name}'
+```
+
+Main endpoints are:
+
+```text
+GET /subject
+GET /sample
+GET /file
+GET /subject-diagnosis
+GET /sample-diagnosis
+GET /organization
+GET /namespace
+GET /info
+```
+
+Important behavior: most filters are exact and case-sensitive. Multiple query parameters are combined with AND. For array fields, matching any value in that field behaves like OR. Use `page` and `per_page` for pagination.
+
+There is not a general `member=` query parameter in the member API. To search one member’s data, switch the API host to that member’s base URL. Source: official CCDI Federation API OpenAPI spec: https://cbiit.github.io/ccdi-federation-api/swagger.yml
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

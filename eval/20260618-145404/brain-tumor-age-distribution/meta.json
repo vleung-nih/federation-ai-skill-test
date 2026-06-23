@@ -1,0 +1,9 @@
+{
+  "id": "brain-tumor-age-distribution",
+  "prompt": "/ccdi-federation-ai-copilot\n\nUsing sample-diagnosis metadata, show the age distribution of brain-tumor patients across the CCDI Data Federation. Deduplicate to patients where possible and report how many records have known age vs missing age.",
+  "expectedOutput": "GET /sample-diagnosis; age bins; known vs missing age coverage (~263 known). Known age records ~263 (±10%). QA CSV crosswalk: G-03.",
+  "exitCode": 2,
+  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/brain-tumor-age-distribution/output.jsonl",
+  "timestamp": "20260618-145404"
+}

@@ -1,7 +1,7 @@
 const path = require("node:path");
-const { existsSync, mkdirSync, writeFileSync } = require("node:fs");
+const { existsSync, mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const XLSX = require("xlsx");
-const { runCodexAsync } = require("./codex_runner");
+const { runCodexAsync, TEST_CASE_SANDBOX } = require("./codex_runner");
 
 const log = {
   info: (msg, ...args) => console.log(`[INFO]  ${new Date().toISOString()} - ${msg}`, ...args),
@@ -40,6 +40,22 @@ function findColumnName(row, candidates) {
 
 function sanitizePathSegment(value) {
   return String(value).replace(/[\\/:*?"<>|]/g, "_").trim() || "unknown";
+}
+
+function parseBool(value) {
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes";
+}
+
+function isContentFilterBlock(tracePath) {
+  try {
+    const text = readFileSync(tracePath, "utf8");
+    return text.includes('"type":"error"') && text.includes("flagged for possible cybersecurity risk");
+  } catch {
+    return false;
+  }
 }
 
 function resolveExcelPath(argvPath) {
@@ -141,6 +157,7 @@ async function runFromExcel(excelPath, options = {}) {
     "expected_answer",
     "expected answer",
   ]);
+  const requiresLiveApiColumn = findColumnName(rows[0], ["requires_live_api", "requires live api"]);
 
   if (!idColumn || !promptColumn) {
     throw new Error(
@@ -154,6 +171,7 @@ async function runFromExcel(excelPath, options = {}) {
 
   let successCount = 0;
   let failureCount = 0;
+  let contentFilterCount = 0;
   let skippedCount = 0;
   const idCount = new Map();
   const cases = [];
@@ -187,30 +205,58 @@ async function runFromExcel(excelPath, options = {}) {
     const metaPath = path.join(caseDir, "meta.json");
 
     const expectedOutput = expectedOutputColumn ? String(row[expectedOutputColumn] ?? "") : "";
+    const requiresLiveApi = requiresLiveApiColumn ? parseBool(row[requiresLiveApiColumn]) : false;
 
-    cases.push({ id, prompt, expectedOutput, tracePath, metaPath, timestamp });
+    cases.push({
+      id,
+      prompt,
+      expectedOutput,
+      requiresLiveApi,
+      tracePath,
+      metaPath,
+      timestamp,
+    });
   }
 
   log.info(`Starting run with concurrency=${concurrency}, queuedCases=${cases.length}, skippedRows=${skippedCount}`);
 
   await runWithConcurrency(cases, concurrency, async (testCase) => {
-    const { id, prompt, expectedOutput, tracePath, metaPath, timestamp: caseTimestamp } = testCase;
-    log.info(`Running test case id=${id}`);
-    const result = await runCodexAsync(prompt, tracePath);
+    const {
+      id,
+      prompt,
+      expectedOutput,
+      requiresLiveApi,
+      tracePath,
+      metaPath,
+      timestamp: caseTimestamp,
+    } = testCase;
+    log.info(`Running test case id=${id} (sandbox=${TEST_CASE_SANDBOX})`);
+    const result = await runCodexAsync(prompt, tracePath, {
+      forTestCases: true,
+      cwd: process.cwd(),
+    });
+    const blockedByContentFilter = result.exitCode !== 0 && isContentFilterBlock(tracePath);
 
     const meta = {
       id,
       prompt,
       expectedOutput,
+      requiresLiveApi,
+      sandbox: TEST_CASE_SANDBOX,
       exitCode: result.exitCode,
+      blockedByContentFilter,
       stderr: result.stderr || "",
       outputPath: tracePath,
       timestamp: caseTimestamp,
     };
     writeFileSync(metaPath, JSON.stringify(meta, null, 2), "utf8");
 
-    if (result.exitCode === 0) {
+    if (result.exitCode === 0 || blockedByContentFilter) {
       successCount += 1;
+      if (blockedByContentFilter) {
+        contentFilterCount += 1;
+        log.warn(`Content filter blocked test case id=${id}; preserving block message for judge evaluation`);
+      }
     } else {
       failureCount += 1;
       log.error(`Failed test case id=${id} (exit code ${result.exitCode})`);
@@ -222,6 +268,7 @@ async function runFromExcel(excelPath, options = {}) {
     runRoot,
     successCount,
     failureCount,
+    contentFilterCount,
     skippedCount,
     queuedCases: cases.length,
     concurrency,
@@ -232,6 +279,10 @@ async function runFromExcel(excelPath, options = {}) {
   log.info(
     `Finished run. totalRows=${summary.totalRows}, success=${summary.successCount}, failed=${summary.failureCount}`
   );
+
+  if (failureCount > 0) {
+    throw new Error(`One or more Codex executions failed (${failureCount}/${cases.length})`);
+  }
 
   return summary;
 }

@@ -8,21 +8,56 @@ const log = {
   error: (msg, ...args) => console.error(`[ERROR] ${new Date().toISOString()} - ${msg}`, ...args),
 };
 
-function runCodex(prompt, outJsonlPath) {
-  log.info(`Starting codex run`);
+const VALID_SANDBOXES = new Set(["read-only", "danger-full-access"]);
+const DEFAULT_SANDBOX = "danger-full-access";
+const TEST_CASE_SANDBOX = "danger-full-access";
+
+function resolveRunOptions(options = {}) {
+  if (options.forTestCases) {
+    if (options.sandbox && options.sandbox !== TEST_CASE_SANDBOX) {
+      log.warn(
+        `Ignoring sandbox=${options.sandbox} for test cases; read-only blocks live API (DNS). Using ${TEST_CASE_SANDBOX}.`
+      );
+    }
+    return {
+      sandbox: TEST_CASE_SANDBOX,
+      cwd: options.cwd ?? process.cwd(),
+    };
+  }
+
+  const sandbox = options.sandbox ?? DEFAULT_SANDBOX;
+  if (!VALID_SANDBOXES.has(sandbox)) {
+    throw new Error(`Invalid sandbox "${sandbox}". Use read-only or danger-full-access.`);
+  }
+
+  return {
+    sandbox,
+    cwd: options.cwd ?? process.cwd(),
+  };
+}
+
+function buildCodexArgs(prompt, sandbox) {
+  return [
+    "-a",
+    "never",
+    "exec",
+    "--ephemeral",
+    "--json",
+    "--sandbox",
+    sandbox,
+    prompt,
+  ];
+}
+
+function runCodex(prompt, outJsonlPath, options = {}) {
+  const { sandbox, cwd } = resolveRunOptions(options);
+  log.info(`Starting codex run (sandbox=${sandbox}, cwd=${cwd})`);
   log.info(`Prompt: ${prompt}`);
   log.info(`Output path: ${outJsonlPath}`);
-  const res = spawnSync(
-    "codex",
-    [
-      "exec",
-      "--json", 
-      "--sandbox", 
-      "danger-full-access",
-      prompt,
-    ],
-    { encoding: "utf8" }
-  );
+  const res = spawnSync("codex", buildCodexArgs(prompt, sandbox), {
+    encoding: "utf8",
+    cwd,
+  });
 
   mkdirSync(path.dirname(outJsonlPath), { recursive: true });
 
@@ -40,23 +75,17 @@ function runCodex(prompt, outJsonlPath) {
   return { exitCode, stderr: res.stderr };
 }
 
-function runCodexAsync(prompt, outJsonlPath) {
-  log.info(`Starting codex run`);
+function runCodexAsync(prompt, outJsonlPath, options = {}) {
+  const { sandbox, cwd } = resolveRunOptions(options);
+  log.info(`Starting codex run (sandbox=${sandbox}, cwd=${cwd})`);
   log.info(`Prompt: ${prompt}`);
   log.info(`Output path: ${outJsonlPath}`);
 
   return new Promise((resolve) => {
-    const child = spawn(
-      "codex",
-      [
-        "exec",
-        "--json",
-        "--sandbox",
-        "danger-full-access",
-        prompt,
-      ],
-      { stdio: ["ignore", "pipe", "pipe"] }
-    );
+    const child = spawn("codex", buildCodexArgs(prompt, sandbox), {
+      stdio: ["ignore", "pipe", "pipe"],
+      cwd,
+    });
 
     let stdout = "";
     let stderr = "";
@@ -106,12 +135,19 @@ function parseArgs(argv) {
       i += 1;
       continue;
     }
+    if (token === "--sandbox") {
+      args.sandbox = argv[i + 1];
+      i += 1;
+      continue;
+    }
   }
   return args;
 }
 
 function printUsage() {
-  console.log("Usage: node codex_runner.js --prompt \"your prompt\" --out eval/20260101/case-1/output.jsonl");
+  console.log(
+    'Usage: node codex_runner.js --prompt "your prompt" --out eval/20260101/case-1/output.jsonl [--sandbox danger-full-access|read-only]'
+  );
 }
 
 if (require.main === module) {
@@ -121,11 +157,14 @@ if (require.main === module) {
     process.exit(1);
   }
 
-  const result = runCodex(args.prompt, args.out);
+  const result = runCodex(args.prompt, args.out, { sandbox: args.sandbox });
   process.exit(result.exitCode);
 }
 
 module.exports = {
   runCodex,
   runCodexAsync,
+  VALID_SANDBOXES,
+  DEFAULT_SANDBOX,
+  TEST_CASE_SANDBOX,
 };

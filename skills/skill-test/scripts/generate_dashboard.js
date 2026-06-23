@@ -40,6 +40,7 @@ function getLastTwoNonEmptyLines(filePath) {
 
 function extractAgentTextFromLastTwoLines(outputJsonlPath) {
   const lines = getLastTwoNonEmptyLines(outputJsonlPath);
+  let errorMessage = null;
   for (const line of lines) {
     let parsed;
     try {
@@ -57,6 +58,18 @@ function extractAgentTextFromLastTwoLines(outputJsonlPath) {
     ) {
       return parsed.item.text;
     }
+
+    if (parsed && parsed.type === "error" && typeof parsed.message === "string") {
+      errorMessage = parsed.message;
+    }
+
+    if (parsed && parsed.type === "turn.failed" && parsed.error && typeof parsed.error.message === "string") {
+      errorMessage = parsed.error.message;
+    }
+  }
+
+  if (errorMessage) {
+    return errorMessage;
   }
 
   throw new Error(`Cannot find agent_message in last two non-empty lines: ${outputJsonlPath}`);
@@ -135,10 +148,39 @@ function loadCase(caseFolderPath) {
     llmGeneratedResult,
     tokenUsage: tokenUsage || null,
     overallPass: evaluation ? Boolean(evaluation.overall_pass) : null,
+    score: evaluation ? toNumberOrNull(evaluation.score) : null,
     semanticMatchScore: evaluation ? toNumberOrNull(evaluation.semantic_match_score) : null,
     completenessScore: evaluation ? toNumberOrNull(evaluation.completeness_score) : null,
     correctnessScore: evaluation ? toNumberOrNull(evaluation.correctness_score) : null,
     comparisonSummary: evaluation && typeof evaluation.comparison_summary === "string" ? evaluation.comparison_summary : "",
+  };
+}
+
+function summarizeCases(runFolderName, runFolderPath, cases) {
+  const scores = cases
+    .map((item) => item.score === null ? null : item)
+    .filter(Boolean);
+  const passed = cases.filter((item) => item.overallPass === true).length;
+  const failed = cases.filter((item) => item.overallPass === false).length;
+  const averageScore =
+    scores.length > 0
+      ? scores.reduce((sum, item) => sum + item.score, 0) / scores.length
+      : null;
+
+  let execution = null;
+  const summaryPath = path.join(runFolderPath, "summary.json");
+  if (existsSync(summaryPath)) {
+    const currentSummary = readJson(summaryPath);
+    execution = currentSummary.execution || currentSummary;
+  }
+
+  return {
+    timestamp: runFolderName,
+    total_cases: cases.length,
+    passed,
+    failed,
+    average_score: averageScore,
+    execution,
   };
 }
 
@@ -508,6 +550,11 @@ function main() {
 
   const html = renderHtml(runFolderName, cases);
   writeFileSync(outPath, html, "utf8");
+  writeFileSync(
+    path.join(runFolderPath, "summary.json"),
+    JSON.stringify(summarizeCases(runFolderName, runFolderPath, cases), null, 2),
+    "utf8"
+  );
 
   console.log(`[INFO] Dashboard created: ${outPath}`);
   console.log(`[INFO] Cases included: ${cases.length}`);

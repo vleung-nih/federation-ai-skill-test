@@ -1,0 +1,68 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    plan-female-subjects
+
+Expected Output:
+    A cohort plan naming GET /subject, sex=F PV mapping, assumptions, and no live API execution. QA CSV crosswalk: U-05, L-10, W-01.
+
+Actual Output:
+    **Metadata Query Plan**
+
+Cohort interpretation: female CCDI Federation subjects.
+
+Semantic mapping:
+- User term: `female subjects`
+- Entity: `subject`
+- Controlled field: `sex`
+- Valid permissible value: `F`
+- Meaning: Female
+
+Validated API plan:
+```http
+GET https://federation.ccdi.cancer.gov/api/v1/subject
+```
+
+Query parameters:
+```text
+sex=F
+page=1
+per_page=10
+```
+
+Example request, not executed:
+```bash
+curl 'https://federation.ccdi.cancer.gov/api/v1/subject?sex=F&page=1&per_page=10'
+```
+
+Notes:
+- Filtering is exact and case-sensitive, so use `F`, not `female` or `Female`.
+- Multiple filters would be combined with logical AND by the API.
+- Pagination is supported with `page` and `per_page`; I would start with `per_page=10` for inspection.
+- No live CCDI Federation data was fetched.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

@@ -1,0 +1,9 @@
+{
+  "id": "rna-seq-tumor-samples-plan",
+  "prompt": "/ccdi-federation-ai-copilot\n\nFind tumor samples with RNA-Seq library strategy. Plan the query only; do not fetch live data.",
+  "expectedOutput": "GET /sample with library_strategy=RNA-Seq and tissue_type=Tumor if applicable. QA CSV crosswalk: W-03.",
+  "exitCode": 1,
+  "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)\n2026-06-18T18:53:09.206881Z  WARN codex_state::runtime: failed to open state db at /Users/leungvw/.codex/state_5.sqlite: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database\n2026-06-18T18:53:09.206915Z  WARN codex_rollout::state_db: failed to initialize state runtime: failed to initialize state runtime at /Users/leungvw/.codex: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database: error returned from database: (code: 8) attempt to write a readonly database: (code: 8) attempt to write a readonly database\nReading additional input from stdin...\nError: failed to initialize in-process app-server client: Operation not permitted (os error 1)\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145308/rna-seq-tumor-samples-plan/output.jsonl",
+  "timestamp": "20260618-145308"
+}

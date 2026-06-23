@@ -1,0 +1,9 @@
+{
+  "id": "neuroblastoma-by-node",
+  "prompt": "/ccdi-federation-ai-copilot\n\nUsing the CCDI Federation API, fetch live metadata and report how many unique subjects diagnosed with neuroblastoma exist in each federation node. Summarize per-node counts and note any nodes that returned errors instead of data.",
+  "expectedOutput": "Per-node neuroblastoma counts; PCDC and ccdi-ecDNA errors reported; uses /subject-diagnosis. Baseline per-node counts (±5%): CCDI-DCC ~3999, KidsFirst ~537, StJude ~275, Treehouse ~198, ccdi-iusccc-pst ~12. Must explicitly report errors for PCDC, ccdi-ecDNA — not as zero counts. QA CSV crosswalk: G-01, B-01.",
+  "exitCode": 2,
+  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/neuroblastoma-by-node/output.jsonl",
+  "timestamp": "20260618-145404"
+}

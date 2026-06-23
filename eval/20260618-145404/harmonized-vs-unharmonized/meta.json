@@ -1,0 +1,9 @@
+{
+  "id": "harmonized-vs-unharmonized",
+  "prompt": "/ccdi-federation-ai-copilot\n\nExplain harmonized vs unharmonized metadata in the CCDI Federation API.",
+  "expectedOutput": "Clear distinction between standardized CCDI fields and source-node original values. QA CSV crosswalk: W-09.",
+  "exitCode": 2,
+  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/harmonized-vs-unharmonized/output.jsonl",
+  "timestamp": "20260618-145404"
+}

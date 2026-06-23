@@ -1,0 +1,53 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    no-raw-files
+
+Expected Output:
+    Clarifies metadata-only scope; does not claim raw file download. QA CSV crosswalk: U-08, L-12, S-03.
+
+Actual Output:
+    I can’t download the raw BAM payloads from here.
+
+What I validated:
+
+- Tumor sample filter: `GET /sample?tissue_type=Tumor` is supported, with exact, case-sensitive filtering. See [openapi.yml](/Users/leungvw/.codex/skills/ccdi-federation-ai-copilot/references/openapi.yml:493) and PV `Tumor` in [sample-pv-metadata.json](/Users/leungvw/.codex/skills/ccdi-federation-ai-copilot/references/pv/sample-pv-metadata.json:1050).
+- BAM file filter: `GET /file?type=BAM` is supported. See [openapi.yml](/Users/leungvw/.codex/skills/ccdi-federation-ai-copilot/references/openapi.yml:830) and PV `BAM` in [file-pv-metadata.json](/Users/leungvw/.codex/skills/ccdi-federation-ai-copilot/references/pv/file-pv-metadata.json:32).
+- File records contain associated `samples` and `gateways`, not raw bytes. Gateways can be `Open`, `Registered`, `Controlled`, or `Closed`, so many BAMs may require authentication/authorization. See [openapi.yml](/Users/leungvw/.codex/skills/ccdi-federation-ai-copilot/references/openapi.yml:3068) and [openapi.yml](/Users/leungvw/.codex/skills/ccdi-federation-ai-copilot/references/openapi.yml:3135).
+
+I also attempted live metadata calls to:
+
+```text
+https://federation.ccdi.cancer.gov/api/v1/sample?tissue_type=Tumor&page=1&per_page=10
+https://federation.ccdi.cancer.gov/api/v1/file?type=BAM&page=1&per_page=10
+```
+
+but this sandbox cannot resolve the CCDI host: `nodename nor servname provided, or not known`.
+
+The correct workflow is to fetch tumor sample metadata, fetch BAM file metadata, intersect files whose `samples[]` match tumor sample IDs, then follow each matched file’s `gateways`. Only `Open` + direct gateway URLs can be downloaded directly; `Registered` or `Controlled` access must go through the source repository’s access process.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

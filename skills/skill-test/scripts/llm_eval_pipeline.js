@@ -57,12 +57,44 @@ function parseArgs(argv) {
 
 function resolveProjectRoot() {
   const cwd = process.cwd();
+  if (existsSync(path.join(cwd, "skills", "skill-test", "scripts"))) {
+    return cwd;
+  }
+
+  if (existsSync(path.join(cwd, ".git"))) {
+    return cwd;
+  }
+
   if (existsSync(path.join(cwd, "package.json"))) {
     return cwd;
   }
 
   // Fallback when invoked outside repo root.
   return path.resolve(__dirname, "../../../../");
+}
+
+function assertTrustedProjectRoot(root) {
+  if (process.env.SKILL_TEST_SKIP_GIT_CHECK === "1") {
+    log.warn("SKILL_TEST_SKIP_GIT_CHECK=1 — skipping git-root trust check");
+    return;
+  }
+
+  const codexRunnerPath = path.join(root, "skills", "skill-test", "scripts", "codex_runner.js");
+  const gitDir = path.join(root, ".git");
+
+  if (!existsSync(codexRunnerPath)) {
+    throw new Error(
+      `Run from the agentskills git repo root (must contain skills/skill-test/scripts/codex_runner.js). ` +
+        `Current root: ${root}. Do not copy skill-test into work/ or other disposable folders.`
+    );
+  }
+
+  if (!existsSync(gitDir)) {
+    throw new Error(
+      `Run from the agentskills git repo root (must contain .git). ` +
+        `Current root: ${root}. Do not copy skill-test into work/ — copies bypass sandbox fixes.`
+    );
+  }
 }
 
 function runStage(label, command, args, options = {}) {
@@ -206,6 +238,7 @@ async function main() {
   try {
     const { excelPath, concurrency } = parseArgs(process.argv);
     const projectRoot = resolveProjectRoot();
+    assertTrustedProjectRoot(projectRoot);
     const scriptsDir = __dirname;
     const stageScripts = {
       testCaseRunner: path.join(scriptsDir, "test_case_runner.js"),

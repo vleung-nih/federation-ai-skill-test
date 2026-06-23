@@ -1,0 +1,58 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    brain-tumor-age-distribution
+
+Expected Output:
+    GET /sample-diagnosis; age bins; known vs missing age coverage (~263 known). Known age records ~263 (±10%). QA CSV crosswalk: G-03.
+
+Actual Output:
+    I couldn’t run a fresh parameterized CCDI fetch from the local sandbox, so these counts come from the project’s June 2026 cached baseline for the same validated query.
+
+Method: `GET /sample-diagnosis?search=brain`, deduplicated to patients where possible via `sample.subject`. `age_at_diagnosis.value` is in days and was binned into years.
+
+| Age at diagnosis | Patients | % of known-age patients |
+|---|---:|---:|
+| 0-4 | 141 | 53.6% |
+| 5-9 | 69 | 26.2% |
+| 10-14 | 45 | 17.1% |
+| 15-19 | 8 | 3.0% |
+| 20+ | 0 | 0.0% |
+
+| Age coverage | Patients | % |
+|---|---:|---:|
+| Known age | 263 | 71.9% |
+| Missing age | 103 | 28.1% |
+| Total deduplicated patients | 366 | 100.0% |
+
+Median known age: 4.5 years. Range: 0.0-18.2 years.
+
+Limitations: PCDC and `ccdi-ecDNA` returned route errors for this endpoint in the baseline; Treehouse returned 0 records.
+
+Sources: [CCDI API docs](https://cbiit.github.io/ccdi-federation-api/), [Federation `/info`](https://federation.ccdi.cancer.gov/api/v1/info), [baseline JSON](/Users/leungvw/ai/federation/ccdi-federation-ai/skills/ccdi-federation-ai-copilot/evals/baselines/brain_tumor_age_distribution.json), [baseline SVG](</Users/leungvw/ai/federation/AI applications/Skills Questions/ccdi_brain_tumor_age_distribution.svg>).
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

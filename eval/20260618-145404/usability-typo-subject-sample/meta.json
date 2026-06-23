@@ -1,0 +1,9 @@
+{
+  "id": "usability-typo-subject-sample",
+  "prompt": "/ccdi-federation-ai-copilot\n\nwhats the diffrence between subject and sample",
+  "expectedOutput": "Correct distinction; patient tone. QA CSV crosswalk: U-06.",
+  "exitCode": 2,
+  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/usability-typo-subject-sample/output.jsonl",
+  "timestamp": "20260618-145404"
+}

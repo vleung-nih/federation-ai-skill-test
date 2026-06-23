@@ -1,0 +1,97 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    glioma-ambiguity
+
+Expected Output:
+    Surfaces multiple glioma-related PV alternatives; states assumptions.
+
+Actual Output:
+    **Cohort Query Plan**
+
+Goal: identify **subjects with glioma** using metadata-only CCDI Federation API queries. No live data fetched.
+
+**Primary Query**
+
+Use the experimental subject diagnosis search endpoint:
+
+```http
+GET https://federation.ccdi.cancer.gov/api/v1/subject-diagnosis
+```
+
+Query parameters:
+
+```text
+search=glioma
+page=1
+per_page=10
+```
+
+Rationale: `/subject-diagnosis` searches `associated_diagnoses` case-insensitively and includes a subject when any associated diagnosis contains the query string `glioma`.
+
+**Planned Pagination**
+
+Start with:
+
+```text
+page=1
+per_page=10
+```
+
+If executing later, continue pages until there is no next page, an empty/fewer-than-requested page appears, or the requested cap is reached.
+
+**Semantic Mapping**
+
+The term `glioma` is broad. The bundled permissible-value metadata shows relevant diagnosis-category concepts including:
+
+- `High-Grade Glioma`
+- `Low-Grade Gliomas`
+- `Other Gliomas`
+
+I would not automatically include adjacent categories like `Glioneuronal and Neuronal Tumors` or separate entities like `Ependymoma` unless you want a broader CNS/glial-tumor cohort.
+
+**Validation Notes**
+
+- `/subject-diagnosis` is documented and supports `search`, `page`, and `per_page`.
+- `/subject` itself does not expose a documented diagnosis `search` parameter, so `/subject-diagnosis` is the better subject-level route for this request.
+- The search is substring-based, not an ontology expansion. It should catch diagnoses containing “glioma,” but it may miss related diagnoses that do not literally contain that string.
+
+**Optional Variants**
+
+If you only need subject ID mappings rather than full subject records, use:
+
+```http
+GET /subject-mapping?search=glioma&page=1&per_page=10
+```
+
+If you later want sample-level records instead of subjects, use:
+
+```http
+GET /sample-diagnosis?search=glioma&page=1&per_page=10
+```
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

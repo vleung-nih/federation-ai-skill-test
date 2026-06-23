@@ -1,0 +1,59 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    neuroblastoma-by-node
+
+Expected Output:
+    Per-node neuroblastoma counts; PCDC and ccdi-ecDNA errors reported; uses /subject-diagnosis. Baseline per-node counts (±5%): CCDI-DCC ~3999, KidsFirst ~537, StJude ~275, Treehouse ~198, ccdi-iusccc-pst ~12. Must explicitly report errors for PCDC, ccdi-ecDNA — not as zero counts.
+
+Actual Output:
+    Fetched live CCDI Federation metadata via:
+
+`GET https://federation.ccdi.cancer.gov/api/v1/subject-diagnosis?search=neuroblastoma&page=1&per_page=1`
+
+Query time: `Tue, 23 Jun 2026 15:42:26 GMT`.
+
+Counts use each node’s `summary.counts.all` from the subject diagnosis endpoint, where `search=neuroblastoma` matches `associated_diagnoses` case-insensitively.
+
+| Federation node | Unique matching subjects |
+|---|---:|
+| PCDC | 12,839 |
+| CCDI-DCC | 3,999 |
+| KidsFirst | 537 |
+| StJude | 275 |
+| ccdi-iusccc-pst | 12 |
+| Treehouse | 0 |
+
+Total across nodes that returned data: `17,662` node-local subject records. This is not a cross-node deduplicated federation-wide subject count.
+
+Node returning an error instead of data:
+
+| Federation node | Error |
+|---|---|
+| ccdi-ecDNA | `InvalidRoute`: requested URL was not found for route `/api` |
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

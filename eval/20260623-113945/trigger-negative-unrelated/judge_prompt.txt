@@ -1,0 +1,59 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    trigger-negative-unrelated
+
+Expected Output:
+    General Python help without invoking CCDI federation skill behavior inappropriately.
+
+Actual Output:
+    The CCDI skill isn’t relevant to this generic Python task, so here’s a standalone quicksort script:
+
+```python
+def quicksort(nums):
+    if len(nums) <= 1:
+        return nums
+
+    pivot = nums[len(nums) // 2]
+    left = [x for x in nums if x < pivot]
+    middle = [x for x in nums if x == pivot]
+    right = [x for x in nums if x > pivot]
+
+    return quicksort(left) + middle + quicksort(right)
+
+
+if __name__ == "__main__":
+    numbers = [10, 7, 8, 9, 1, 5, 3]
+    sorted_numbers = quicksort(numbers)
+
+    print("Original:", numbers)
+    print("Sorted:", sorted_numbers)
+```
+
+This version returns a new sorted list and handles duplicate integers correctly.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

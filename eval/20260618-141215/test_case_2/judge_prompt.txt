@@ -1,0 +1,94 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    test_case_2
+
+Expected Output:
+    total count is 153,171.  Break down is [
+  {
+    "source": "PCDC",
+    "counts": {
+      "total": 23823
+    }
+  },
+  {
+    "source": "Treehouse",
+    "counts": {
+      "total": 12723
+    }
+  },
+  {
+    "source": "StJude",
+    "counts": {
+      "total": 14681
+    }
+  },
+  {
+    "source": "KidsFirst",
+    "counts": {
+      "total": 38440
+    }
+  },
+  {
+    "source": "ccdi-ecDNA",
+    "counts": {
+      "total": 3205
+    }
+  },
+  {
+    "source": "ccdi-iusccc-pst",
+    "counts": {
+      "total": 504
+    }
+  },
+  {
+    "source": "CCDI-DCC",
+    "counts": {
+      "total": 59795
+    }
+  }
+]
+how many counts in total cross the sources
+
+Actual Output:
+    Using the live CCDI Federation `/api/v1/subject/summary` endpoint, participants are represented as `subjects`.
+
+| CCDI federation node | Registered participants |
+|---|---:|
+| PCDC | 23,823 |
+| Treehouse | 12,723 |
+| StJude | 14,681 |
+| KidsFirst | 38,440 |
+| ccdi-ecDNA | 3,205 |
+| ccdi-iusccc-pst | 504 |
+| CCDI-DCC | 59,795 |
+
+Total across returned nodes: **153,171** participants.
+
+Source: `https://federation.ccdi.cancer.gov/api/v1/subject/summary`, queried June 18, 2026. No node-level error objects were returned.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

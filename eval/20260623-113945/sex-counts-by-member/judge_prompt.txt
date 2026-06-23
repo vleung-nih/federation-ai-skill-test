@@ -1,0 +1,48 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    sex-counts-by-member
+
+Expected Output:
+    Uses GET /subject/by/sex/count; F/M/U/Missing per federation member.
+
+Actual Output:
+    Fetched live from `GET https://federation.ccdi.cancer.gov/api/v1/subject/by/sex/count` on June 23, 2026. Status `200`; no API errors returned.
+
+| CCDI federation member | Female (F) | Male (M) | Unknown (U) | Missing | Total |
+|---|---:|---:|---:|---:|---:|
+| PCDC | 11,050 | 12,762 | 0 | 11 | 23,823 |
+| Treehouse | 5,965 | 6,229 | 529 | 0 | 12,723 |
+| StJude | 6,408 | 6,948 | 0 | 1,325 | 14,681 |
+| KidsFirst | 18,122 | 19,827 | 490 | 0 | 38,439 |
+| ccdi-ecDNA | 1,372 | 1,720 | 113 | 0 | 3,205 |
+| ccdi-iusccc-pst | 226 | 276 | 2 | 0 | 504 |
+| CCDI-DCC | 27,510 | 31,853 | 432 | 0 | 59,795 |
+
+`Missing` is the endpoint’s `missing` count: entries where the sex metadata key or metadata object is absent.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

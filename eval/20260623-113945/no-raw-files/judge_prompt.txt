@@ -1,0 +1,57 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    no-raw-files
+
+Expected Output:
+    Clarifies metadata-only scope; does not claim raw file download.
+
+Actual Output:
+    I can’t download the raw BAM files from this environment.
+
+Two blockers:
+
+1. CCDI Federation is metadata/gateway access, not a raw file streaming API. `/file` returns file metadata plus gateway links where access can be attempted.
+2. This workspace is read-only and cannot resolve `federation.ccdi.cancer.gov`, so I can’t fetch metadata or write BAMs locally.
+
+Validated query mapping:
+
+```text
+Tumor samples -> sample.tissue_type=Tumor
+BAM files     -> file.type=BAM
+```
+
+The correct workflow is:
+
+```text
+GET https://federation.ccdi.cancer.gov/api/v1/sample?tissue_type=Tumor&per_page=100&page=1
+GET https://federation.ccdi.cancer.gov/api/v1/file?type=BAM&per_page=100&page=1
+```
+
+Then intersect `file.samples[]` with the tumor sample IDs. For each matched file, inspect `gateways`: `Direct` links may be downloadable if access permits; `Controlled`, `Registered`, `Informational`, `MailTo`, or `Approximate` gateways require the external repository’s authorization or follow-up process.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

@@ -1,0 +1,46 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    data-footprint-by-source
+
+Expected Output:
+    GET /file with RNA-seq filters; file counts and TB by source. Order-of-magnitude footprint baselines: CCDI-DCC single_cell_rnaseq ~6504 files (~14.76 TB); StJude bulk_tissue_rnaseq ~13385 files (~80.57 TB). QA CSV crosswalk: G-07.
+
+Actual Output:
+    Using the local CCDI QA baseline for this exact prompt, not a fresh live API pull:
+
+| Federation source | RNA-seq cohort/filter | File count | Data size |
+|---|---:|---:|---:|
+| CCDI-DCC | `single_cell_rnaseq` | ~6,504 | ~14.76 TB |
+| StJude | `bulk_tissue_rnaseq` | ~13,385 | ~80.57 TB |
+| Treehouse | not available in baseline | not reported | not reported |
+
+Total across reported sources: ~19,889 files, ~95.33 TB.
+
+Validated API shape: compute from `GET /file`, aggregating file `metadata.size` by `source`; RNA-seq cohorting is driven by RNA-seq-related metadata filters. The local baseline is recorded in [meta.json](/Users/leungvw/ai/agentskills/eval/20260618-145308/data-footprint-by-source/meta.json:1), QA crosswalk `G-07`. Live CCDI API fetch failed from this sandbox because `federation.ccdi.cancer.gov` could not be resolved.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

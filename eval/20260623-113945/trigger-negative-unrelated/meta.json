@@ -1,0 +1,12 @@
+{
+  "id": "trigger-negative-unrelated",
+  "prompt": "/ccdi-federation-ai-copilot\n\nWrite a Python script to sort a list of integers using quicksort.",
+  "expectedOutput": "General Python help without invoking CCDI federation skill behavior inappropriately.",
+  "requiresLiveApi": false,
+  "sandbox": "read-only",
+  "exitCode": 0,
+  "blockedByContentFilter": false,
+  "stderr": "Reading additional input from stdin...\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260623-113945/trigger-negative-unrelated/output.jsonl",
+  "timestamp": "20260623-113945"
+}

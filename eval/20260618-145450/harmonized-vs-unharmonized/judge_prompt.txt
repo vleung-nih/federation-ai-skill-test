@@ -1,0 +1,48 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    harmonized-vs-unharmonized
+
+Expected Output:
+    Clear distinction between standardized CCDI fields and source-node original values. QA CSV crosswalk: W-09.
+
+Actual Output:
+    In the CCDI Federation API, **harmonized metadata** is the standardized view of data across federation nodes. These fields appear as top-level fields under `metadata`, use CCDI-standard field names, and may use controlled permissible values where available. They are meant for cross-node querying and comparison.
+
+**Unharmonized metadata** preserves node-specific or source-specific metadata. It appears under `metadata.unharmonized`. These fields may use original source wording, legacy names, local labels, or values that have not been mapped into CCDI-standard fields.
+
+Important practical differences:
+
+- Harmonized fields are queried by their normal metadata path, for example `diagnosis=value`.
+- Unharmonized fields must be queried with the `metadata.unharmonized` prefix, for example `metadata.unharmonized.<field>=value`.
+- Filtering is exact and case-sensitive for both harmonized and unharmonized fields.
+- Unharmonized values should **not** be treated as equivalent to CCDI controlled values unless a documented mapping supports that.
+- The API can describe metadata fields through endpoints like `/metadata/fields/subject`, `/metadata/fields/sample`, and `/metadata/fields/file`; harmonized field descriptions indicate `harmonized: true`, while unharmonized field descriptions indicate `harmonized: false`.
+
+A good rule of thumb: use **harmonized metadata** for reliable federation-wide cohort queries, counts, and comparisons; inspect **unharmonized metadata** when you need source-node detail, original submitted context, or fields that have not yet been standardized.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

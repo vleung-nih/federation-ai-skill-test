@@ -18,12 +18,17 @@ function runCodexJudge(prompt, schemaPath, evaluationPath) {
   return spawnSync(
     "codex",
     [
+      "-a",
+      "never",
       "exec",
-      prompt,
+      "--ephemeral",
+      "--sandbox",
+      "read-only",
       "--output-schema",
       schemaPath,
       "-o",
       evaluationPath,
+      prompt,
     ],
     { encoding: "utf8" }
   );

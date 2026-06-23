@@ -1,0 +1,85 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    subject-endpoint-explainer
+
+Expected Output:
+    OpenAPI-grounded explanation of /subject GET, filters, pagination. QA CSV crosswalk: W-07.
+
+Actual Output:
+    No live data fetched.
+
+`GET /api/v1/subject` returns paginated subject-level metadata known by CCDI Federation nodes. It is an index/list endpoint, not a raw data endpoint.
+
+**What It Returns**
+The response is an aggregated array. Each item can be either:
+
+- a successful node response with `source`, `summary`, `data`, and optional `gateways`
+- an error object for a node that could not return results
+
+Each subject in `data` includes an `id`, `kind`, optional access `gateways`, and optional `metadata`, such as `sex`, `race`, `ethnicity`, `identifiers`, `vital_status`, `age_at_vital_status`, `associated_diagnoses`, and `unharmonized` metadata.
+
+**Query Parameters**
+Supported subject filters include:
+
+- `sex`
+- `race`
+- `ethnicity`
+- `identifiers`
+- `vital_status`
+- `age_at_vital_status`
+- `depositions`
+- `metadata.unharmonized.<field>` for unharmonized metadata fields
+
+Filtering rules:
+
+- Matches are exact and case-sensitive.
+- Single-value fields match when the field value exactly equals the query string.
+- Multi-value fields match when any value in the field equals the query string.
+- Empty or `null` metadata fields do not match.
+- Multiple filter parameters are combined with logical AND.
+- OR across different fields is not natively supported; you would run separate queries and union results yourself.
+- The literal Swagger-style parameter `metadata.unharmonized.<field>` is symbolic; actual unharmonized filters should use the specific unharmonized field path prefixed by `metadata.unharmonized`.
+
+**Pagination**
+`/subject` is paginated with:
+
+- `page`: 1-based page number. If omitted, it defaults to `1`.
+- `per_page`: number of results per page. If omitted, each server chooses its own default; the community convention is `100` when reasonable.
+
+Successful paginated responses include a `link` response header with paging URLs:
+
+- `first`: required
+- `last`: required
+- `next`: present only when another page exists
+- `prev`: present only when a previous page exists
+
+The response body also includes summary counts: `current` for records on the current page and `all` for records across all pages.
+
+Possible relevant errors include `404` when a server cannot share line-level subject data, and `422` for invalid query or pagination parameters such as an unusable `page` / `per_page` combination.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

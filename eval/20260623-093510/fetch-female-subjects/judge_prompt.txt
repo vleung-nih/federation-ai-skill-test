@@ -1,0 +1,53 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    fetch-female-subjects
+
+Expected Output:
+    Live GET /subject with sex=F; endpoint and params documented; concise summary. QA CSV crosswalk: L-11, W-02.
+
+Actual Output:
+    I couldn’t fetch live CCDI records from this environment.
+
+Validated request:
+
+`GET https://federation.ccdi.cancer.gov/api/v1/subject?sex=F&page=1&per_page=10`
+
+Planned pagination: pages `1-3`, `10` results per page.
+
+Mapping used: `female subjects` -> subject field `sex=F`.
+
+What happened:
+
+- `/subject` supports `sex`, `page`, and `per_page`.
+- `curl` failed with DNS resolution: `Could not resolve host: federation.ccdi.cancer.gov`.
+- The Node fetch fallback also failed: `fetch failed`.
+- No CCDI API payload was returned, so there were no subject records, node-level errors, or API-level response errors to summarize.
+
+The API plan is valid, but live network access to the CCDI Federation host is blocked in this sandbox.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

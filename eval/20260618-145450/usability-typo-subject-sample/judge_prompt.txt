@@ -1,0 +1,48 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    usability-typo-subject-sample
+
+Expected Output:
+    Correct distinction; patient tone. QA CSV crosswalk: U-06.
+
+Actual Output:
+    In CCDI Federation:
+
+**Subject** = the person/participant/patient-level record.  
+Use it for metadata about the individual, such as `sex`, `race`, `ethnicity`, `vital_status`, `age_at_vital_status`, and `associated_diagnoses`.
+
+**Sample** = a biospecimen or analyzed material taken from a subject.  
+Use it for specimen/assay-level metadata, such as `diagnosis`, `disease_phase`, `anatomical_sites`, `tissue_type`, `tumor_classification`, `preservation_method`, `age_at_collection`, `library_strategy`, and `specimen_molecular_analyte_type`.
+
+The relationship is usually:
+
+`subject -> one or more samples -> files/data`
+
+So if you ask “find patients with neuroblastoma,” that is often a **subject** question. If you ask “find tumor RNA-seq samples from diagnosis,” that is a **sample** question.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

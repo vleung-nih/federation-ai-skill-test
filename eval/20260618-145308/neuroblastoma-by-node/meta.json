@@ -1,0 +1,9 @@
+{
+  "id": "neuroblastoma-by-node",
+  "prompt": "/ccdi-federation-ai-copilot\n\nUsing the CCDI Federation API, fetch live metadata and report how many unique subjects diagnosed with neuroblastoma exist in each federation node. Summarize per-node counts and note any nodes that returned errors instead of data.",
+  "expectedOutput": "Per-node neuroblastoma counts; PCDC and ccdi-ecDNA errors reported; uses /subject-diagnosis. Baseline per-node counts (±5%): CCDI-DCC ~3999, KidsFirst ~537, StJude ~275, Treehouse ~198, ccdi-iusccc-pst ~12. Must explicitly report errors for PCDC, ccdi-ecDNA — not as zero counts. QA CSV crosswalk: G-01, B-01.",
+  "exitCode": 1,
+  "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)\n2026-06-18T18:53:09.096223Z  WARN codex_state::runtime: failed to open state db at /Users/leungvw/.codex/state_5.sqlite: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database\n2026-06-18T18:53:09.096260Z  WARN codex_rollout::state_db: failed to initialize state runtime: failed to initialize state runtime at /Users/leungvw/.codex: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database: error returned from database: (code: 8) attempt to write a readonly database: (code: 8) attempt to write a readonly database\nReading additional input from stdin...\nError: failed to initialize in-process app-server client: Operation not permitted (os error 1)\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145308/neuroblastoma-by-node/output.jsonl",
+  "timestamp": "20260618-145308"
+}

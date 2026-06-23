@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test Case Dashboard - 20260618-141215</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #122033;
+      --muted: #5b6c82;
+      --line: #d9e2ef;
+      --ok: #0f8a5f;
+      --bad: #c03a2b;
+      --chip: #eef3fb;
+      --accent: #1d6fd7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      background: radial-gradient(circle at 15% 20%, #e5eefc 0%, #f6f8fb 55%), linear-gradient(180deg, #f7f9fd 0%, #eef3fb 100%);
+      color: var(--text);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    }
+    .wrap {
+      max-width: 1320px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 25px rgba(16, 42, 74, 0.08);
+      overflow: hidden;
+    }
+    .head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, #fdfefe 0%, #f2f7ff 100%);
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 0.2px;
+    }
+    .sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+      background: #fbfdff;
+    }
+    select, button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 8px;
+      height: 34px;
+      padding: 0 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button.primary {
+      border-color: #c8d8f6;
+      background: #e8f0ff;
+      color: #0b4ea1;
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+      font-size: 13px;
+    }
+    th {
+      background: #f7faff;
+      color: #2d4666;
+      user-select: none;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    th.sortable { cursor: pointer; }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pill.pass { background: #d6f5e8; color: var(--ok); }
+    .pill.fail { background: #fde0dc; color: var(--bad); }
+    .pill.na { background: var(--chip); color: var(--muted); }
+    .prompt {
+      max-width: 560px;
+      line-height: 1.4;
+    }
+    .details-cell {
+      background: #fdfefe;
+      padding: 0;
+    }
+    .details {
+      display: none;
+      padding: 14px;
+      border-top: 1px dashed #ccd9ec;
+      background: linear-gradient(180deg, #fcfdff 0%, #f8fbff 100%);
+    }
+    .details.show { display: block; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(280px, 1fr));
+      gap: 10px;
+    }
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+      min-height: 120px;
+    }
+    .box h4 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: #31527c;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.35;
+      font-size: 12px;
+      color: #203650;
+    }
+    .scoreline {
+      margin: 4px 0;
+      font-size: 13px;
+      color: #1d3557;
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .prompt { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <h1 class="title">Test Case Execution Dashboard</h1>
+      <div class="sub">Run Folder: 20260618-141215</div>
+    </div>
+    <div class="controls">
+      <label for="sortBy">Sort by</label>
+      <select id="sortBy">
+        <option value="caseName">Test Case Name</option>
+        <option value="overallPass">Overall Pass</option>
+        <option value="semanticMatchScore">Semantic Match Score</option>
+        <option value="completenessScore">Completeness Score</option>
+        <option value="correctnessScore">Correctness Score</option>
+      </select>
+      <select id="sortOrder">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+      </select>
+      <button id="applySort" class="primary">Apply Sort</button>
+      <button id="expandAll">Show All Details</button>
+      <button id="collapseAll">Hide All Details</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th class="sortable" data-field="caseName">Test Case Name</th>
+          <th class="sortable" data-field="prompt">Prompt</th>
+          <th class="sortable" data-field="overallPass">Overall Pass</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const testCases = [{"caseName":"test_case_1","prompt":"How do I search on individual Federation members data?","expectedResult":"To search individual member data in the CCDI Data Federation, you have two options:\r\n\r\nOption 1 (Centralized): Query the unified Data Federation Resource API and use filter criteria (like namespaces or source identifiers) to isolate results from a specific repository.\r\n\r\nOption 2 (Direct): Query an individual member's server directly. Every member implements the same standard CCDI Data Federation API Specification, allowing you to hit their specific /subjects, /samples, or /files endpoints to extract member-specific metadata.","llmGeneratedResult":"To search an individual CCDI Federation member, call that member’s own API base URL, then use the same entity endpoints and query parameters.\n\nExample member base URLs from the current official OpenAPI spec:\n\n```text\nhttps://ccdi.stjude.cloud/api/v1\nhttps://ccdifederation.pedscommons.org/api/v1\nhttps://ccdi.treehouse.gi.ucsc.edu/api/v1\nhttps://ccdi.kidsfirstdrc.org/api/v1\nhttps://ccdi-ecdna.org/ccdi-federation/api/v1\nhttps://ccdi.ipo.sulab.io/api/v1\nhttps://dcc.ccdi.cancer.gov/api/v1\n```\n\nCommon searches:\n\n```bash\n# Search samples in one member by exact diagnosis value\ncurl 'https://ccdi.kidsfirstdrc.org/api/v1/sample?diagnosis=Neuroblastoma&per_page=25&page=1'\n\n# Experimental free-text diagnosis search on subjects\ncurl 'https://ccdi.kidsfirstdrc.org/api/v1/subject-diagnosis?search=glioma&per_page=25&page=1'\n\n# Search files in one member\ncurl 'https://ccdi.kidsfirstdrc.org/api/v1/file?type=bam&per_page=25&page=1'\n\n# Get one exact entity once you know its organization, namespace, and name\ncurl 'https://ccdi.kidsfirstdrc.org/api/v1/sample/{organization}/{namespace}/{name}'\n```\n\nMain endpoints are:\n\n```text\nGET /subject\nGET /sample\nGET /file\nGET /subject-diagnosis\nGET /sample-diagnosis\nGET /organization\nGET /namespace\nGET /info\n```\n\nImportant behavior: most filters are exact and case-sensitive. Multiple query parameters are combined with AND. For array fields, matching any value in that field behaves like OR. Use `page` and `per_page` for pagination.\n\nThere is not a general `member=` query parameter in the member API. To search one member’s data, switch the API host to that member’s base URL. Source: official CCDI Federation API OpenAPI spec: https://cbiit.github.io/ccdi-federation-api/swagger.yml","tokenUsage":{"input_tokens":264574,"cached_input_tokens":222720,"output_tokens":3412,"reasoning_output_tokens":1754},"overallPass":false,"semanticMatchScore":65,"completenessScore":55,"correctnessScore":92,"comparisonSummary":"The actual output correctly covers the direct-member querying approach and explains that member APIs expose common entity endpoints. However, it omits the expected centralized option: querying the unified Data Federation Resource API and filtering by repository/source identifiers. The extra examples and endpoint details are mostly consistent with the direct option, but they do not compensate for the missing first option."},{"caseName":"test_case_2","prompt":"How many total participants are registered by each CCDI federation node","expectedResult":"total count is 153,171.  Break down is [\r\n  {\r\n    \"source\": \"PCDC\",\r\n    \"counts\": {\r\n      \"total\": 23823\r\n    }\r\n  },\r\n  {\r\n    \"source\": \"Treehouse\",\r\n    \"counts\": {\r\n      \"total\": 12723\r\n    }\r\n  },\r\n  {\r\n    \"source\": \"StJude\",\r\n    \"counts\": {\r\n      \"total\": 14681\r\n    }\r\n  },\r\n  {\r\n    \"source\": \"KidsFirst\",\r\n    \"counts\": {\r\n      \"total\": 38440\r\n    }\r\n  },\r\n  {\r\n    \"source\": \"ccdi-ecDNA\",\r\n    \"counts\": {\r\n      \"total\": 3205\r\n    }\r\n  },\r\n  {\r\n    \"source\": \"ccdi-iusccc-pst\",\r\n    \"counts\": {\r\n      \"total\": 504\r\n    }\r\n  },\r\n  {\r\n    \"source\": \"CCDI-DCC\",\r\n    \"counts\": {\r\n      \"total\": 59795\r\n    }\r\n  }\r\n]\r\nhow many counts in total cross the sources","llmGeneratedResult":"Using the live CCDI Federation `/api/v1/subject/summary` endpoint, participants are represented as `subjects`.\n\n| CCDI federation node | Registered participants |\n|---|---:|\n| PCDC | 23,823 |\n| Treehouse | 12,723 |\n| StJude | 14,681 |\n| KidsFirst | 38,440 |\n| ccdi-ecDNA | 3,205 |\n| ccdi-iusccc-pst | 504 |\n| CCDI-DCC | 59,795 |\n\nTotal across returned nodes: **153,171** participants.\n\nSource: `https://federation.ccdi.cancer.gov/api/v1/subject/summary`, queried June 18, 2026. No node-level error objects were returned.","tokenUsage":{"input_tokens":183749,"cached_input_tokens":148992,"output_tokens":1679,"reasoning_output_tokens":491},"overallPass":true,"semanticMatchScore":95,"completenessScore":98,"correctnessScore":100,"comparisonSummary":"The actual output preserves the expected total count of 153,171 and includes the same per-source breakdown with matching counts. It changes wording and table formatting, and adds endpoint/date/no-error context, but these additions do not contradict the expected output."}];
+
+    function displayPass(value) {
+      if (value === true) return '<span class="pill pass">PASS</span>';
+      if (value === false) return '<span class="pill fail">FAIL</span>';
+      return '<span class="pill na">N/A</span>';
+    }
+
+    function safe(v) {
+      return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function usageBlock(usage) {
+      if (!usage) {
+        return '<div class="muted">No usage data found in output.jsonl</div>';
+      }
+      const total =
+        (Number(usage.input_tokens) || 0) +
+        (Number(usage.output_tokens) || 0) +
+        (Number(usage.cached_input_tokens) || 0) +
+        (Number(usage.reasoning_output_tokens) || 0);
+      return [
+        '<div class="scoreline">input_tokens: ' + (usage.input_tokens ?? 'N/A') + '</div>',
+        '<div class="scoreline">output_tokens: ' + (usage.output_tokens ?? 'N/A') + '</div>',
+        '<div class="scoreline">cached_input_tokens: ' + (usage.cached_input_tokens ?? 'N/A') + '</div>',
+        '<div class="scoreline">reasoning_output_tokens: ' + (usage.reasoning_output_tokens ?? 'N/A') + '</div>',
+        '<div class="scoreline"><strong>estimated_total_tokens: ' + total + '</strong></div>'
+      ].join('');
+    }
+
+    function toSortValue(item, field) {
+      const value = item[field];
+      if (value === null || value === undefined) return field === 'overallPass' ? -1 : '';
+      if (typeof value === 'boolean') return value ? 1 : 0;
+      return value;
+    }
+
+    function sortCases(field, order) {
+      testCases.sort((a, b) => {
+        const av = toSortValue(a, field);
+        const bv = toSortValue(b, field);
+        if (typeof av === 'number' && typeof bv === 'number') {
+          return order === 'asc' ? av - bv : bv - av;
+        }
+        const cmp = String(av).localeCompare(String(bv));
+        return order === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    function renderRows() {
+      const tbody = document.getElementById('rows');
+      tbody.innerHTML = '';
+
+      testCases.forEach((t, idx) => {
+        const row = document.createElement('tr');
+        row.innerHTML =
+          '<td>' + safe(t.caseName) + '</td>' +
+          '<td class="prompt">' + safe(t.prompt) + '</td>' +
+          '<td>' + displayPass(t.overallPass) + '</td>' +
+          '<td><button type="button" data-target="d-' + idx + '" class="toggle">Show</button></td>';
+        tbody.appendChild(row);
+
+        const detailsRow = document.createElement('tr');
+        detailsRow.innerHTML =
+          '<td colspan="4" class="details-cell">' +
+            '<div id="d-' + idx + '" class="details">' +
+              '<div class="grid">' +
+                '<div class="box">' +
+                  '<h4>Expected Result</h4>' +
+                  '<div class="pre">' + safe(t.expectedResult) + '</div>' +
+                '</div>' +
+                '<div class="box">' +
+                  '<h4>LLM Generated Result</h4>' +
+                  '<div class="pre">' + safe(t.llmGeneratedResult) + '</div>' +
+                '</div>' +
+                '<div class="box">' +
+                  '<h4>Token Usage</h4>' +
+                  usageBlock(t.tokenUsage) +
+                '</div>' +
+                '<div class="box">' +
+                  '<h4>Evaluation</h4>' +
+                  '<div class="scoreline">overall_pass: ' + (t.overallPass === null ? 'N/A' : t.overallPass) + '</div>' +
+                  '<div class="scoreline">semantic_match_score: ' + (t.semanticMatchScore ?? 'N/A') + '</div>' +
+                  '<div class="scoreline">completeness_score: ' + (t.completenessScore ?? 'N/A') + '</div>' +
+                  '<div class="scoreline">correctness_score: ' + (t.correctnessScore ?? 'N/A') + '</div>' +
+                  '<div class="scoreline"><strong>comparison_summary:</strong></div>' +
+                  '<div class="pre">' + safe(t.comparisonSummary || 'N/A') + '</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</td>';
+        tbody.appendChild(detailsRow);
+      });
+
+      document.querySelectorAll('button.toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = document.getElementById(btn.dataset.target);
+          if (!target) return;
+          const show = !target.classList.contains('show');
+          target.classList.toggle('show', show);
+          btn.textContent = show ? 'Hide' : 'Show';
+        });
+      });
+    }
+
+    document.getElementById('applySort').addEventListener('click', () => {
+      const field = document.getElementById('sortBy').value;
+      const order = document.getElementById('sortOrder').value;
+      sortCases(field, order);
+      renderRows();
+    });
+
+    document.getElementById('expandAll').addEventListener('click', () => {
+      document.querySelectorAll('.details').forEach((el) => el.classList.add('show'));
+      document.querySelectorAll('button.toggle').forEach((btn) => (btn.textContent = 'Hide'));
+    });
+
+    document.getElementById('collapseAll').addEventListener('click', () => {
+      document.querySelectorAll('.details').forEach((el) => el.classList.remove('show'));
+      document.querySelectorAll('button.toggle').forEach((btn) => (btn.textContent = 'Show'));
+    });
+
+    document.querySelectorAll('th.sortable').forEach((th) => {
+      th.addEventListener('click', () => {
+        document.getElementById('sortBy').value = th.dataset.field;
+        document.getElementById('applySort').click();
+      });
+    });
+
+    renderRows();
+  </script>
+</body>
+</html>

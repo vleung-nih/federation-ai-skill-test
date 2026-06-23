@@ -1,0 +1,12 @@
+{
+  "id": "no-invented-pv",
+  "prompt": "/ccdi-federation-ai-copilot\n\nFilter subjects by eye_color=blue in the CCDI Federation API.",
+  "expectedOutput": "States eye_color is not a supported field/PV; does not invent.",
+  "requiresLiveApi": false,
+  "sandbox": "read-only",
+  "exitCode": 0,
+  "blockedByContentFilter": false,
+  "stderr": "Reading additional input from stdin...\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260623-113945/no-invented-pv/output.jsonl",
+  "timestamp": "20260623-113945"
+}

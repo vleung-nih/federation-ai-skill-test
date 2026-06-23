@@ -1,0 +1,58 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    rna-seq-tumor-samples-plan
+
+Expected Output:
+    GET /sample with library_strategy=RNA-Seq and tissue_type=Tumor if applicable. QA CSV crosswalk: W-03.
+
+Actual Output:
+    **Query Plan**
+
+Use the CCDI Federation sample endpoint, metadata-only:
+
+```http
+GET https://federation.ccdi.cancer.gov/api/v1/sample?tissue_type=Tumor&library_strategy=RNA-Seq&page=1&per_page=10
+```
+
+**Normalized mappings**
+
+| User term | Endpoint | Field | Value |
+|---|---|---:|---|
+| tumor samples | `/sample` | `tissue_type` | `Tumor` |
+| RNA-Seq library strategy | `/sample` | `library_strategy` | `RNA-Seq` |
+
+**Validation notes**
+
+- `GET /sample` supports both `tissue_type` and `library_strategy` as query filters.
+- Filtering is exact and case-sensitive, so use `Tumor` and `RNA-Seq` exactly.
+- Multiple filters are combined with logical AND, so this returns samples where both conditions match.
+- Pagination uses `page` and `per_page`; start with `page=1&per_page=10`, then follow the response `Link` header or increment `page`.
+
+No live data was fetched.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

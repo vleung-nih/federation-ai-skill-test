@@ -1,0 +1,51 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    usability-capabilities
+
+Expected Output:
+    Clear capabilities; metadata-only scope; no raw file or PHI claims. QA CSV crosswalk: U-01, L-06.
+
+Actual Output:
+    I can help with metadata-only CCDI Data Federation API work, including:
+
+- Build or review cohort queries from natural language.
+- Map terms to subject, sample, or file fields and permissible values.
+- Explain endpoints, parameters, pagination, response fields, relationships, and node-level errors.
+- Validate API routes and query parameters against the bundled OpenAPI spec.
+- Plan read-only metadata workflows before execution.
+- Run live metadata GET requests only when you explicitly ask me to fetch, test, inspect, or summarize live metadata.
+- Summarize results without dumping full raw API responses by default.
+
+Example asks:
+- “Find subjects with osteosarcoma and WGS files.”
+- “What fields can I filter samples by?”
+- “Explain `/subject` pagination and response shape.”
+- “Validate this CCDI Federation query.”
+- “Fetch live metadata for this cohort and summarize node errors.”
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

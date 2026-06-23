@@ -1,0 +1,9 @@
+{
+  "id": "rna-seq-tumor-samples-plan",
+  "prompt": "/ccdi-federation-ai-copilot\n\nFind tumor samples with RNA-Seq library strategy. Plan the query only; do not fetch live data.",
+  "expectedOutput": "GET /sample with library_strategy=RNA-Seq and tissue_type=Tumor if applicable. QA CSV crosswalk: W-03.",
+  "exitCode": 2,
+  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/rna-seq-tumor-samples-plan/output.jsonl",
+  "timestamp": "20260618-145404"
+}

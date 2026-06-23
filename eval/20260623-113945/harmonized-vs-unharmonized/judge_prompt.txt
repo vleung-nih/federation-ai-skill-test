@@ -1,0 +1,66 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    harmonized-vs-unharmonized
+
+Expected Output:
+    Clear distinction between standardized CCDI fields and source-node original values.
+
+Actual Output:
+    In the CCDI Federation API, **harmonized metadata** is the normalized, cross-node metadata layer. These are the standard API fields exposed at the top level of a record’s `metadata` object, using CCDI field names and controlled values where available. Use these fields for portable cohort searches, comparisons across nodes, and downstream summaries.
+
+**Unharmonized metadata** preserves source-specific information that may not have been normalized: original node wording, legacy field names, local values, or extra submitted fields. In API responses, these live under:
+
+```json
+metadata.unharmonized
+```
+
+Practically:
+
+```json
+{
+  "metadata": {
+    "diagnosis": "...",
+    "sex": "...",
+    "unharmonized": {
+      "source_diagnosis_text": "...",
+      "local_case_type": "..."
+    }
+  }
+}
+```
+
+Both harmonized and unharmonized metadata fields are filterable. Harmonized fields are queried by their normal field name, while unharmonized fields must be prefixed:
+
+```text
+diagnosis=value
+metadata.unharmonized.<actual_field_name>=value
+```
+
+The important caution: **do not treat an unharmonized value as equivalent to a CCDI controlled permissible value unless the mapping is documented or clearly supported**. Harmonized fields are best for federation-wide discovery; unharmonized fields are best for preserving provenance, inspecting source-node detail, or finding records using local/legacy metadata.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

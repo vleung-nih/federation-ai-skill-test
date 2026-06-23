@@ -1,0 +1,12 @@
+{
+  "id": "sex-counts-by-member",
+  "prompt": "/ccdi-federation-ai-copilot\n\nFetch sex distribution by CCDI federation member using the federation count endpoint. Show Female (F), Male (M), Unknown (U), and Missing for each responding node.",
+  "expectedOutput": "Uses GET /subject/by/sex/count; F/M/U/Missing per federation member.",
+  "requiresLiveApi": true,
+  "sandbox": "danger-full-access",
+  "exitCode": 0,
+  "blockedByContentFilter": false,
+  "stderr": "Reading additional input from stdin...\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260623-113945/sex-counts-by-member/output.jsonl",
+  "timestamp": "20260623-113945"
+}

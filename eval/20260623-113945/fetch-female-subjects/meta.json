@@ -1,0 +1,12 @@
+{
+  "id": "fetch-female-subjects",
+  "prompt": "/ccdi-federation-ai-copilot\n\nFetch and summarize female subjects from the CCDI federation API. Use 10 results per page.",
+  "expectedOutput": "Live GET /subject with sex=F; endpoint and params documented; concise summary.",
+  "requiresLiveApi": true,
+  "sandbox": "danger-full-access",
+  "exitCode": 0,
+  "blockedByContentFilter": false,
+  "stderr": "Reading additional input from stdin...\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260623-113945/fetch-female-subjects/output.jsonl",
+  "timestamp": "20260623-113945"
+}

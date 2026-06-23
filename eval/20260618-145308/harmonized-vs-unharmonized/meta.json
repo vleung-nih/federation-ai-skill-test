@@ -1,0 +1,9 @@
+{
+  "id": "harmonized-vs-unharmonized",
+  "prompt": "/ccdi-federation-ai-copilot\n\nExplain harmonized vs unharmonized metadata in the CCDI Federation API.",
+  "expectedOutput": "Clear distinction between standardized CCDI fields and source-node original values. QA CSV crosswalk: W-09.",
+  "exitCode": 1,
+  "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)\n2026-06-18T18:53:09.315638Z  WARN codex_state::runtime: failed to open state db at /Users/leungvw/.codex/state_5.sqlite: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database\n2026-06-18T18:53:09.315670Z  WARN codex_rollout::state_db: failed to initialize state runtime: failed to initialize state runtime at /Users/leungvw/.codex: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database: error returned from database: (code: 8) attempt to write a readonly database: (code: 8) attempt to write a readonly database\nReading additional input from stdin...\nError: failed to initialize in-process app-server client: Operation not permitted (os error 1)\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145308/harmonized-vs-unharmonized/output.jsonl",
+  "timestamp": "20260618-145308"
+}

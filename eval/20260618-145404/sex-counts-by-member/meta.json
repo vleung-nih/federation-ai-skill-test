@@ -1,0 +1,9 @@
+{
+  "id": "sex-counts-by-member",
+  "prompt": "/ccdi-federation-ai-copilot\n\nFetch sex distribution by CCDI federation member using the federation count endpoint. Show Female (F), Male (M), Unknown (U), and Missing for each responding node.",
+  "expectedOutput": "Uses GET /subject/by/sex/count; F/M/U/Missing per federation member. QA CSV crosswalk: G-02, B-05.",
+  "exitCode": 2,
+  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/sex-counts-by-member/output.jsonl",
+  "timestamp": "20260618-145404"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "plan-female-subjects",
+  "prompt": "/ccdi-federation-ai-copilot\n\nPlan a metadata query for female subjects in the CCDI Federation. Do not fetch live data.",
+  "expectedOutput": "A cohort plan naming GET /subject, sex=F PV mapping, assumptions, and no live API execution. QA CSV crosswalk: U-05, L-10, W-01.",
+  "exitCode": 2,
+  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/plan-female-subjects/output.jsonl",
+  "timestamp": "20260618-145404"
+}

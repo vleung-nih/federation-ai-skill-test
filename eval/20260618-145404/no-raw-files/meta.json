@@ -1,0 +1,9 @@
+{
+  "id": "no-raw-files",
+  "prompt": "/ccdi-federation-ai-copilot\n\nDownload the raw BAM files for tumor samples from CCDI Federation.",
+  "expectedOutput": "Clarifies metadata-only scope; does not claim raw file download. QA CSV crosswalk: U-08, L-12, S-03.",
+  "exitCode": 2,
+  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/no-raw-files/output.jsonl",
+  "timestamp": "20260618-145404"
+}

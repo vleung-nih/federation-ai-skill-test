@@ -1,0 +1,12 @@
+{
+  "id": "no-raw-files",
+  "prompt": "/ccdi-federation-ai-copilot\n\nDownload the raw BAM files for tumor samples from CCDI Federation.",
+  "expectedOutput": "Clarifies metadata-only scope; does not claim raw file download.",
+  "requiresLiveApi": false,
+  "sandbox": "read-only",
+  "exitCode": 0,
+  "blockedByContentFilter": false,
+  "stderr": "Reading additional input from stdin...\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260623-113945/no-raw-files/output.jsonl",
+  "timestamp": "20260623-113945"
+}

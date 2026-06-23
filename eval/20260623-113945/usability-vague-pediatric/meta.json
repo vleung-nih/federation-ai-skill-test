@@ -1,0 +1,12 @@
+{
+  "id": "usability-vague-pediatric",
+  "prompt": "/ccdi-federation-ai-copilot\n\nShow me kids with cancer",
+  "expectedOutput": "Clarifies pediatric + diagnosis entity; cohort plan or clarifying question.",
+  "requiresLiveApi": false,
+  "sandbox": "read-only",
+  "exitCode": 0,
+  "blockedByContentFilter": false,
+  "stderr": "Reading additional input from stdin...\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260623-113945/usability-vague-pediatric/output.jsonl",
+  "timestamp": "20260623-113945"
+}

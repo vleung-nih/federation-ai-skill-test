@@ -1,0 +1,54 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    fetch-female-subjects
+
+Expected Output:
+    Live GET /subject with sex=F; endpoint and params documented; concise summary. QA CSV crosswalk: L-11, W-02.
+
+Actual Output:
+    I validated the CCDI query, but live fetching was blocked by this environment’s network/DNS restrictions.
+
+Mapping used: `female subjects` -> subject `sex=F` from [subject-pv-metadata.json](/Users/leungvw/.codex/skills/ccdi-federation-ai-copilot/references/pv/subject-pv-metadata.json:2).
+
+Validated API call from [openapi.yml](/Users/leungvw/.codex/skills/ccdi-federation-ai-copilot/references/openapi.yml:29):
+
+```text
+GET https://federation.ccdi.cancer.gov/api/v1/subject?sex=F&page=1&per_page=10
+GET https://federation.ccdi.cancer.gov/api/v1/subject?sex=F&page=2&per_page=10
+GET https://federation.ccdi.cancer.gov/api/v1/subject?sex=F&page=3&per_page=10
+```
+
+Result: no subject records were fetched. The bundled client returned:
+
+```text
+<urlopen error [Errno 8] nodename nor servname provided, or not known>
+```
+
+A direct runtime fetch also failed with `TypeError: fetch failed`. No API payload, pagination headers, node-level errors, or subject summaries were available to summarize.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

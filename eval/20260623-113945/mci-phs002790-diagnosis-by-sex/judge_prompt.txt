@@ -1,0 +1,68 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    mci-phs002790-diagnosis-by-sex
+
+Expected Output:
+    CCDI-DCC phs002790 scope; ~7,023 participants; top diagnoses with F/M splits. Total participants ~7023 (±5%). Top diagnoses: Missing / not reported ~1371, Pilocytic astrocytoma ~642.
+
+Actual Output:
+    Fetched live CCDI Federation metadata from `GET /api/v1/subject` with `depositions=phs002790`, aggregating only `source=CCDI-DCC` records in namespace `phs002790`.
+
+Total CCDI-DCC participants: `7,023`
+
+Sex totals:
+| Sex | Participants |
+|---|---:|
+| F | 3,232 |
+| M | 3,791 |
+| U | 0 |
+| Missing | 0 |
+
+Top diagnosis values by participant count:
+
+| Diagnosis | Total | F | M | U | Missing sex |
+|---|---:|---:|---:|---:|---:|
+| Missing diagnosis | 1,371 | 631 | 740 | 0 | 0 |
+| Pilocytic astrocytoma | 642 | 294 | 348 | 0 | 0 |
+| Glioma, malignant | 620 | 300 | 320 | 0 | 0 |
+| Low-Grade Glioma | 531 | 244 | 287 | 0 | 0 |
+| Medulloblastoma, NOS | 528 | 196 | 332 | 0 | 0 |
+| Neoplasm, uncertain whether benign or malignant | 397 | 191 | 206 | 0 | 0 |
+| Neuroblastoma, NOS | 300 | 130 | 170 | 0 | 0 |
+| Medulloblastoma | 270 | 103 | 167 | 0 | 0 |
+| High-Grade Glioma | 268 | 132 | 136 | 0 | 0 |
+| Neoplasm, malignant | 250 | 118 | 132 | 0 | 0 |
+| Rhabdomyosarcoma, NOS | 221 | 86 | 135 | 0 | 0 |
+| Embryonal rhabdomyosarcoma, NOS | 211 | 77 | 134 | 0 | 0 |
+| Ependymoma, NOS | 207 | 98 | 109 | 0 | 0 |
+| Other | 145 | 69 | 76 | 0 | 0 |
+| Ependymoma | 139 | 70 | 69 | 0 | 0 |
+
+Notes: I counted each participant once per distinct `associated_diagnoses` value. Some participants have multiple diagnosis values, so diagnosis-row totals are not intended to sum to `7,023`. The fetch covered 8 pages of CCDI-DCC results with no page-level API errors.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

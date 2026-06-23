@@ -1,0 +1,61 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    usability-capabilities
+
+Expected Output:
+    Clear capabilities; metadata-only scope; no raw file or PHI claims. QA CSV crosswalk: U-01, L-06.
+
+Actual Output:
+    I can help with metadata-only CCDI Data Federation work, including:
+
+- Build or review cohort queries from natural language, such as “pediatric brain tumors with RNA-seq files.”
+- Map cohort terms to valid subject, sample, and file fields plus permissible values.
+- Explain CCDI Federation API endpoints, parameters, pagination, response fields, errors, and harmonized vs. unharmonized metadata.
+- Validate proposed API calls against the bundled OpenAPI spec and permissible-value metadata.
+- Run read-only metadata GET requests when you explicitly ask me to fetch, test, inspect, or summarize live metadata.
+- Summarize results while preserving node-level, page-level, and API-level errors.
+
+Example prompts you can give me:
+
+```text
+Build a CCDI cohort query for neuroblastoma subjects with WGS files.
+```
+
+```text
+What fields can I use to filter samples by anatomic site?
+```
+
+```text
+Validate this API call and explain the response shape: ...
+```
+
+```text
+Fetch live metadata for this cohort and summarize the counts by node.
+```
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

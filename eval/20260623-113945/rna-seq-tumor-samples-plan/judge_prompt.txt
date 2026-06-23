@@ -1,0 +1,67 @@
+You are an impartial evaluator.
+
+Compare the ACTUAL OUTPUT against the EXPECTED OUTPUT.
+
+Task:
+    rna-seq-tumor-samples-plan
+
+Expected Output:
+    GET /sample with library_strategy=RNA-Seq and tissue_type=Tumor if applicable.
+
+Actual Output:
+    **Query Plan**
+
+Use the `sample` endpoint because both requested constraints are sample-level metadata.
+
+Semantic mappings:
+- “tumor samples” -> `tissue_type=Tumor`
+- “RNA-Seq library strategy” -> `library_strategy=RNA-Seq`
+
+Planned request, not executed:
+
+```http
+GET https://federation.ccdi.cancer.gov/api/v1/sample?tissue_type=Tumor&library_strategy=RNA-Seq&page=1&per_page=10
+```
+
+Equivalent parameters:
+
+```json
+{
+  "tissue_type": "Tumor",
+  "library_strategy": "RNA-Seq",
+  "page": 1,
+  "per_page": 10
+}
+```
+
+Validation notes:
+- `/sample` supports `GET`.
+- `tissue_type` and `library_strategy` are documented query parameters.
+- Values are exact and case-sensitive.
+- Multiple filters are combined with logical AND, so returned samples must match both `Tumor` and `RNA-Seq`.
+
+No live data was fetched.
+
+
+
+Evaluate whether the actual output is semantically equivalent to the expected output.
+
+Do not require exact wording.
+Accept paraphrases if they preserve the same meaning.
+Penalize missing required information.
+Penalize factual errors or contradictions.
+Penalize unsupported extra claims or hallucinations.
+Ignore harmless formatting differences unless formatting is part of the task.
+
+Scoring:
+- semantic_match_score: how close the actual output is in meaning to the expected output
+- completeness_score: whether all important expected information is included
+- correctness_score: whether the actual output is factually consistent with the expected output
+- score: overall score from 0 to 100
+
+Pass if:
+- score >= 80
+- correctness_score >= 90
+- no major contradictions exist
+
+Return only JSON matching the provided schema.

@@ -1,0 +1,12 @@
+{
+  "id": "mt-pediatric-leukemia-rnaseq",
+  "prompt": "/ccdi-federation-ai-copilot\n\nTurn 1: I want to build a cohort of pediatric leukemia patients with RNA-seq data available.\nTurn 2: Looks good. Generate the API request payload for this query and check it against our OpenAPI specification.\nTurn 3: Can you execute this and summarize the first page of metadata?",
+  "expectedOutput": "Three-turn workflow: cohort plan, OpenAPI-validated payload, read-only fetch with summary.",
+  "requiresLiveApi": true,
+  "sandbox": "danger-full-access",
+  "exitCode": 0,
+  "blockedByContentFilter": false,
+  "stderr": "Reading additional input from stdin...\n",
+  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260623-113945/mt-pediatric-leukemia-rnaseq/output.jsonl",
+  "timestamp": "20260623-113945"
+}

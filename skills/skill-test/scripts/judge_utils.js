@@ -66,6 +66,7 @@ function readLastNonEmptyLines(filePath, count) {
 
 function extractAgentMessageTextFromLastTwoLines(outputJsonlPath) {
   const lines = readLastNonEmptyLines(outputJsonlPath, 2);
+  let errorMessage = null;
   for (const line of lines) {
     let obj;
     try {
@@ -77,6 +78,18 @@ function extractAgentMessageTextFromLastTwoLines(outputJsonlPath) {
     if (obj && obj.type === "item.completed" && obj.item && obj.item.type === "agent_message" && typeof obj.item.text === "string") {
       return obj.item.text;
     }
+
+    if (obj && obj.type === "error" && typeof obj.message === "string") {
+      errorMessage = obj.message;
+    }
+
+    if (obj && obj.type === "turn.failed" && obj.error && typeof obj.error.message === "string") {
+      errorMessage = obj.error.message;
+    }
+  }
+
+  if (errorMessage) {
+    return errorMessage;
   }
 
   throw new Error(

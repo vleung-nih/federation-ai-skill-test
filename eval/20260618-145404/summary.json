@@ -1,0 +1,10 @@
+{
+  "timestamp": "20260618-145404",
+  "runRoot": "/Users/leungvw/ai/agentskills/eval/20260618-145404",
+  "successCount": 0,
+  "failureCount": 27,
+  "skippedCount": 0,
+  "queuedCases": 27,
+  "concurrency": 2,
+  "totalRows": 27
+}

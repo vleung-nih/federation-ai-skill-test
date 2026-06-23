@@ -1,0 +1,5 @@
+{"type":"thread.started","thread_id":"019ef5a9-6539-7ec1-9e5a-ff3d218c4c6f"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"I’ll use the CCDI Federation AI Copilot skill because the request names it. I’m going to read its operating rules first, then I’ll respond within its metadata-only boundaries."}}
+{"type":"error","message":"This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. To get authorized for security work, join the Trusted Access for Cyber program: https://chatgpt.com/cyber"}
+{"type":"turn.failed","error":{"message":"This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. To get authorized for security work, join the Trusted Access for Cyber program: https://chatgpt.com/cyber"}}
