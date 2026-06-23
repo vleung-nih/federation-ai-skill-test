@@ -29,3 +29,6 @@ skills-lock.json
 
 
 references/*
+
+# Agent-created disposable copies (not supported run paths)
+work/
