@@ -53,22 +53,15 @@ node skills/skill-test/scripts/run_judge_evaluations.js 20260623-133832
 node skills/skill-test/scripts/generate_dashboard.js 20260623-133832
 ```
 
-## Codex app invocation (required behavior)
+## Codex app usage
 
-When using `$skill-test` in the Codex app for this workbook:
+When using `$skill-test` in the Codex app for this workbook, the agent should **run the pipeline command immediately** (see Run the pipeline above). If Codex shows a CLI approval dialog, click **Approve** there — do not ask the user to paste approval text in chat.
 
 | Rule | Why |
 |------|-----|
 | Run from **federation-ai-skill-test git repo root** only | Pipeline requires `.git` + `skills/skill-test/scripts/` |
 | **Never** copy skill-test to `work/` or patch sandbox to `read-only` | Causes DNS failures on `federation.ccdi.cancer.gov` |
-| If approval reviewer blocks CLI, **ask user to approve** `danger-full-access` | Do not workaround with read-only |
 | Do not report old `eval/` as a new run unless user asked report-only | |
-
-**User approval example:**
-
-> Approve running the full skill-test pipeline with danger-full-access from federation-ai-skill-test repo root. Do not copy or patch scripts.
-
-Click **Approve** when prompted for the `node llm_eval_pipeline.js` command. If denied, stop and ask — do not fall back to read-only.
 
 ## Sandbox behavior (CLI vs desktop)
 

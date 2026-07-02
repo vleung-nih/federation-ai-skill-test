@@ -42,18 +42,15 @@ The workflow processes test cases defined in an Excel file and produces:
 - **Generate reports** for prompt testing iterations
 - **Compare evaluations** across multiple runs via the dashboard
 
-## Codex app invocation (required behavior)
+## On invoke — run immediately
 
-When invoked via `$skill-test` in the Codex app, follow these rules exactly:
+When `$skill-test` is invoked (with or without naming the xlsx file), **run the pipeline right away** — no clarifying questions, no asking the user to paste approval text in chat.
 
-| Rule | Why |
-|------|-----|
-| Run the pipeline from the **federation-ai-skill-test git repo root** only | Git trust check + correct `eval/` output paths |
-| **Never** copy skill-test to `work/` or patch `codex_runner.js` | Copies bypass sandbox fixes and invite read-only downgrades |
-| **Never** set test-case sandbox to `read-only` | Blocks outbound network → `Could not resolve host` on live CCDI API calls |
-| If the approval reviewer blocks the CLI, **ask the user to approve** — do not substitute read-only | `danger-full-access` is required and expected for test cases |
-| Use the exact command with full path to the xlsx | Avoids running a wrong script copy |
-| Do not summarize old `eval/` runs unless the user asks for report-only | Prevents false "new run" results |
+1. `cd` to the federation-ai-skill-test repo root.
+2. Run the canonical command below.
+3. **Default Excel** when the user mentions CCDI Federation, copilot, federation MVP, or `ccdi-federation-copilot-mvp.xlsx`: `skills/skill-test/example/ccdi-federation-copilot-mvp.xlsx`.
+4. If Codex shows a **CLI command approval** dialog for the `node llm_eval_pipeline.js` command, proceed with that UI (user clicks Approve). Do **not** stop and ask the user to type an approval phrase in chat.
+5. When the run finishes, return the new `eval/{timestamp}/` path and `dashboard.html` location.
 
 **Canonical command** (from federation-ai-skill-test repo root):
 
@@ -64,11 +61,15 @@ node skills/skill-test/scripts/llm_eval_pipeline.js \
   --concurrency 2
 ```
 
-**Example user approval phrase** (Codex chat):
+## Codex constraints
 
-> Approve running the full skill-test pipeline with danger-full-access from federation-ai-skill-test repo root. Do not copy or patch scripts.
-
-If approval is denied, **stop and ask** — do not fall back to read-only or copy the skill elsewhere. Terminal remains the most reliable path for full 27-case runs (~30–40 min).
+| Rule | Why |
+|------|-----|
+| Run the pipeline from the **federation-ai-skill-test git repo root** only | Git trust check + correct `eval/` output paths |
+| **Never** copy skill-test to `work/` or patch `codex_runner.js` | Copies bypass sandbox fixes and invite read-only downgrades |
+| **Never** set test-case sandbox to `read-only` | Blocks outbound network → `Could not resolve host` on live CCDI API calls |
+| Use the exact command with full path to the xlsx | Avoids running a wrong script copy |
+| Do not summarize old `eval/` runs unless the user asks for report-only | Prevents false "new run" results |
 
 **CI escape hatch:** set `SKILL_TEST_SKIP_GIT_CHECK=1` to skip the git-root trust check (not for normal agent use).
 
@@ -161,8 +162,9 @@ node .agent/skills/skill-test/scripts/llm_eval_pipeline.js my_test_cases.xlsx --
 When called by an agent:
 
 ```
-User: "Evaluate these test cases against the judge rubric"
-  → Skill receives: Excel file path + optional concurrency
+User: "$skill-test" or "Test the CCDI Federation AI Copilot skill using ccdi-federation-copilot-mvp.xlsx"
+  → Immediately cd to repo root and run the canonical pipeline command (no preflight chat)
+  → Default xlsx: skills/skill-test/example/ccdi-federation-copilot-mvp.xlsx
   → Executes: All 4 pipeline stages (continues to judge/dashboard if individual cases fail)
   → Opens: Dashboard in default browser automatically
   → Returns: Run folder structure + summary metrics + artifact listing
