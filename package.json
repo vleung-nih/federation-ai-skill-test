@@ -1,0 +1,15 @@
+{
+  "name": "federation-ai-skill-test",
+  "private": true,
+  "description": "LLM-as-a-Judge batch evaluation pipeline for Agent Skills",
+  "scripts": {
+    "eval": "node skills/skill-test/scripts/llm_eval_pipeline.js",
+    "eval:federation": "node skills/skill-test/scripts/llm_eval_pipeline.js skills/skill-test/example/ccdi-federation-copilot-mvp.xlsx --concurrency 2"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,5 +1,6 @@
 const path = require("node:path");
 const { existsSync, readFileSync, writeFileSync, readdirSync, statSync } = require("node:fs");
+const { extractActualOutput } = require("./judge_utils");
 
 function resolveRunFolder(runFolderArg) {
   if (!runFolderArg) {
@@ -29,50 +30,17 @@ function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, "utf8"));
 }
 
-function getLastTwoNonEmptyLines(filePath) {
-  const lines = readFileSync(filePath, "utf8")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-
-  return lines.slice(-2);
-}
-
-function extractAgentTextFromLastTwoLines(outputJsonlPath) {
-  const lines = getLastTwoNonEmptyLines(outputJsonlPath);
-  let errorMessage = null;
-  for (const line of lines) {
-    let parsed;
-    try {
-      parsed = JSON.parse(line);
-    } catch {
-      continue;
-    }
-
-    if (
-      parsed &&
-      parsed.type === "item.completed" &&
-      parsed.item &&
-      parsed.item.type === "agent_message" &&
-      typeof parsed.item.text === "string"
-    ) {
-      return parsed.item.text;
-    }
-
-    if (parsed && parsed.type === "error" && typeof parsed.message === "string") {
-      errorMessage = parsed.message;
-    }
-
-    if (parsed && parsed.type === "turn.failed" && parsed.error && typeof parsed.error.message === "string") {
-      errorMessage = parsed.error.message;
-    }
+function resolveExecutionStatus(meta) {
+  if (typeof meta.executionStatus === "string") {
+    return meta.executionStatus;
   }
-
-  if (errorMessage) {
-    return errorMessage;
+  if (meta.blockedByContentFilter) {
+    return "content_filter";
   }
-
-  throw new Error(`Cannot find agent_message in last two non-empty lines: ${outputJsonlPath}`);
+  if (meta.exitCode === 0) {
+    return "completed";
+  }
+  return "failed";
 }
 
 function extractTokenUsage(outputJsonlPath) {
@@ -133,8 +101,9 @@ function loadCase(caseFolderPath) {
 
   const meta = readJson(metaPath);
   const expectedResult = normalizeExpectedOutput(meta);
-  const llmGeneratedResult = extractAgentTextFromLastTwoLines(outputJsonlPath);
+  const llmGeneratedResult = extractActualOutput(outputJsonlPath, meta);
   const tokenUsage = extractTokenUsage(outputJsonlPath);
+  const executionStatus = resolveExecutionStatus(meta);
 
   let evaluation = null;
   if (existsSync(evaluationPath)) {
@@ -147,6 +116,9 @@ function loadCase(caseFolderPath) {
     expectedResult,
     llmGeneratedResult,
     tokenUsage: tokenUsage || null,
+    exitCode: typeof meta.exitCode === "number" ? meta.exitCode : null,
+    blockedByContentFilter: Boolean(meta.blockedByContentFilter),
+    executionStatus,
     overallPass: evaluation ? Boolean(evaluation.overall_pass) : null,
     score: evaluation ? toNumberOrNull(evaluation.score) : null,
     semanticMatchScore: evaluation ? toNumberOrNull(evaluation.semantic_match_score) : null,
@@ -193,8 +165,14 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-function renderHtml(runFolderName, cases) {
+function renderHtml(runFolderName, cases, executionSummary) {
   const dataJson = JSON.stringify(cases);
+  const execLine = executionSummary
+    ? `Execution: ${executionSummary.successCount ?? "?"} ok, ${executionSummary.failureCount ?? 0} failed, ${executionSummary.contentFilterCount ?? 0} content-filter · `
+    : "";
+  const judgePassed = cases.filter((item) => item.overallPass === true).length;
+  const judgeFailed = cases.filter((item) => item.overallPass === false).length;
+  const subtitle = `${execLine}Judge: ${judgePassed} passed, ${judgeFailed} failed`;
 
   return `<!doctype html>
 <html lang="en">
@@ -301,6 +279,7 @@ function renderHtml(runFolderName, cases) {
     }
     .pill.pass { background: #d6f5e8; color: var(--ok); }
     .pill.fail { background: #fde0dc; color: var(--bad); }
+    .pill.warn { background: #fff3cd; color: #856404; }
     .pill.na { background: var(--chip); color: var(--muted); }
     .prompt {
       max-width: 560px;
@@ -362,13 +341,14 @@ function renderHtml(runFolderName, cases) {
   <div class="wrap">
     <div class="head">
       <h1 class="title">Test Case Execution Dashboard</h1>
-      <div class="sub">Run Folder: ${escapeHtml(runFolderName)}</div>
+      <div class="sub">Run Folder: ${escapeHtml(runFolderName)} · ${escapeHtml(subtitle)}</div>
     </div>
     <div class="controls">
       <label for="sortBy">Sort by</label>
       <select id="sortBy">
         <option value="caseName">Test Case Name</option>
-        <option value="overallPass">Overall Pass</option>
+        <option value="executionStatus">Exec Status</option>
+        <option value="overallPass">Judge Pass</option>
         <option value="semanticMatchScore">Semantic Match Score</option>
         <option value="completenessScore">Completeness Score</option>
         <option value="correctnessScore">Correctness Score</option>
@@ -386,7 +366,8 @@ function renderHtml(runFolderName, cases) {
         <tr>
           <th class="sortable" data-field="caseName">Test Case Name</th>
           <th class="sortable" data-field="prompt">Prompt</th>
-          <th class="sortable" data-field="overallPass">Overall Pass</th>
+          <th class="sortable" data-field="executionStatus">Exec</th>
+          <th class="sortable" data-field="overallPass">Judge</th>
           <th>Details</th>
         </tr>
       </thead>
@@ -396,6 +377,13 @@ function renderHtml(runFolderName, cases) {
 
   <script>
     const testCases = ${dataJson};
+
+    function displayExec(status) {
+      if (status === 'completed') return '<span class="pill pass">PASS</span>';
+      if (status === 'content_filter') return '<span class="pill warn">FILTER</span>';
+      if (status === 'failed') return '<span class="pill fail">FAIL</span>';
+      return '<span class="pill na">N/A</span>';
+    }
 
     function displayPass(value) {
       if (value === true) return '<span class="pill pass">PASS</span>';
@@ -458,15 +446,22 @@ function renderHtml(runFolderName, cases) {
         row.innerHTML =
           '<td>' + safe(t.caseName) + '</td>' +
           '<td class="prompt">' + safe(t.prompt) + '</td>' +
+          '<td>' + displayExec(t.executionStatus) + '</td>' +
           '<td>' + displayPass(t.overallPass) + '</td>' +
           '<td><button type="button" data-target="d-' + idx + '" class="toggle">Show</button></td>';
         tbody.appendChild(row);
 
         const detailsRow = document.createElement('tr');
         detailsRow.innerHTML =
-          '<td colspan="4" class="details-cell">' +
+          '<td colspan="5" class="details-cell">' +
             '<div id="d-' + idx + '" class="details">' +
               '<div class="grid">' +
+                '<div class="box">' +
+                  '<h4>Execution</h4>' +
+                  '<div class="scoreline">status: ' + safe(t.executionStatus) + '</div>' +
+                  '<div class="scoreline">exit_code: ' + (t.exitCode == null ? 'N/A' : t.exitCode) + '</div>' +
+                  '<div class="scoreline">content_filter: ' + t.blockedByContentFilter + '</div>' +
+                '</div>' +
                 '<div class="box">' +
                   '<h4>Expected Result</h4>' +
                   '<div class="pre">' + safe(t.expectedResult) + '</div>' +
@@ -548,7 +543,14 @@ function main() {
     .map((folder) => loadCase(folder))
     .sort((a, b) => a.caseName.localeCompare(b.caseName));
 
-  const html = renderHtml(runFolderName, cases);
+  let executionSummary = null;
+  const summaryPath = path.join(runFolderPath, "summary.json");
+  if (existsSync(summaryPath)) {
+    const existing = readJson(summaryPath);
+    executionSummary = existing.execution || existing;
+  }
+
+  const html = renderHtml(runFolderName, cases, executionSummary);
   writeFileSync(outPath, html, "utf8");
   writeFileSync(
     path.join(runFolderPath, "summary.json"),

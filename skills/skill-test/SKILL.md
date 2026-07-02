@@ -1,7 +1,7 @@
 ---
 name: "skill-test"
 slug: "llm-evaluation-pipeline"
-description: "Automates end-to-end LLM prompt testing with fail-fast execution, browser dashboards, and Excel input. Executes test cases, runs judge evaluations, and generates interactive reports."
+description: "Automates end-to-end LLM prompt testing with continue-on-failure execution, browser dashboards, and Excel input. Executes test cases, runs judge evaluations, and generates interactive reports."
 category: "Testing & Evaluation"
 tags: ["llm", "testing", "evaluation", "judge", "dashboard", "batch-processing"]
 keywords:
@@ -48,17 +48,17 @@ When invoked via `$skill-test` in the Codex app, follow these rules exactly:
 
 | Rule | Why |
 |------|-----|
-| Run the pipeline from the **agentskills git repo root** only | Git trust check + correct `eval/` output paths |
+| Run the pipeline from the **federation-ai-skill-test git repo root** only | Git trust check + correct `eval/` output paths |
 | **Never** copy skill-test to `work/` or patch `codex_runner.js` | Copies bypass sandbox fixes and invite read-only downgrades |
 | **Never** set test-case sandbox to `read-only` | Blocks outbound network → `Could not resolve host` on live CCDI API calls |
 | If the approval reviewer blocks the CLI, **ask the user to approve** — do not substitute read-only | `danger-full-access` is required and expected for test cases |
 | Use the exact command with full path to the xlsx | Avoids running a wrong script copy |
 | Do not summarize old `eval/` runs unless the user asks for report-only | Prevents false "new run" results |
 
-**Canonical command** (from agentskills repo root):
+**Canonical command** (from federation-ai-skill-test repo root):
 
 ```bash
-cd /Users/leungvw/ai/agentskills
+cd /Users/leungvw/ai/federation-ai-skill-test
 node skills/skill-test/scripts/llm_eval_pipeline.js \
   skills/skill-test/example/ccdi-federation-copilot-mvp.xlsx \
   --concurrency 2
@@ -66,7 +66,7 @@ node skills/skill-test/scripts/llm_eval_pipeline.js \
 
 **Example user approval phrase** (Codex chat):
 
-> Approve running the full skill-test pipeline with danger-full-access from agentskills repo root. Do not copy or patch scripts.
+> Approve running the full skill-test pipeline with danger-full-access from federation-ai-skill-test repo root. Do not copy or patch scripts.
 
 If approval is denied, **stop and ask** — do not fall back to read-only or copy the skill elsewhere. Terminal remains the most reliable path for full 27-case runs (~30–40 min).
 
@@ -163,7 +163,7 @@ When called by an agent:
 ```
 User: "Evaluate these test cases against the judge rubric"
   → Skill receives: Excel file path + optional concurrency
-  → Executes: All 4 pipeline stages with fail-fast error handling
+  → Executes: All 4 pipeline stages (continues to judge/dashboard if individual cases fail)
   → Opens: Dashboard in default browser automatically
   → Returns: Run folder structure + summary metrics + artifact listing
 ```
@@ -231,13 +231,29 @@ Click any row to reveal:
 |--------|-------|------|---------|-------------|
 | `excelPath` | (positional) | string | `test_cases.xlsx` | Path to Excel test case file |
 | `concurrency` | `-c` | integer | `1` | Number of parallel Codex workers |
+| `fail-fast` | — | flag | off | Abort Stage 1 if any Codex case exits non-zero (CI mode) |
 
 ## Failure Handling
 
-**Fail-fast approach:** Pipeline stops immediately on first stage failure.
+**Continue-on-failure (default):** If individual Codex cases exit non-zero (killed worker, timeout, crash) but still write `output.jsonl` + `meta.json`, Stage 1 completes and the pipeline runs judge scoring and generates `dashboard.html`. Content-filter blocks are treated as successful execution (preserved for judge).
+
+Use **`--fail-fast`** to restore the old behavior: Stage 1 exits immediately when any case fails (except content-filter).
+
+Stages 2–4 still fail-fast on true harness errors (missing template, schema violation, missing artifacts).
+
+**Manual resume** (if you already have a run folder):
+
+```bash
+node skills/skill-test/scripts/build_judge_prompts.js RUN_ID
+node skills/skill-test/scripts/run_judge_evaluations.js RUN_ID
+node skills/skill-test/scripts/generate_dashboard.js RUN_ID
+```
+
+**Pipeline exit code:** `0` only if no execution failures and no judge failures; `1` otherwise (dashboard may still exist).
 
 - **Missing Excel:** Stops; suggests valid path
-- **LLM timeout/error:** Stops; logs Codex error details
+- **Codex case exit non-zero:** Logged; judge runs by default (`--fail-fast` to abort)
+- **Content-filter block:** Counted as execution success; judge evaluates block message
 - **Judge schema violation:** Stops; indicates schema mismatch
 - **Build judge prompts failure:** Stops; check template syntax
 
@@ -245,11 +261,9 @@ Click any row to reveal:
 
 | Code | Meaning | Recovery |
 |------|---------|----------|
-| 0 | Success | None needed |
-| 1 | Test case execution failed | Check Excel format and Codex CLI |
-| 2 | Judge prompt generation failed | Verify `LLM_as_a_judge.prompt` syntax |
-| 3 | Judge evaluation failed | Check `style-rubric.schema.json` and judge output |
-| 4 | Dashboard generation failed | Check artifacts in run folder |
+| 0 | No execution or judge failures | None needed |
+| 1 | Execution and/or judge failures | Review dashboard; fix prompts or skill |
+| 1 | Stage script crash | Check logs for the failing stage |
 
 **On Success:**
 - Dashboard automatically opens in default browser

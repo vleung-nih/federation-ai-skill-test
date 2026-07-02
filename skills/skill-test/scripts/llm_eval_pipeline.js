@@ -6,13 +6,14 @@
  * Full workflow: Excel → Test Execution → Judge Generation → Evaluation → Dashboard
  * 
  * Features:
- * - Fail-fast error handling (stops on first stage failure)
+ * - Continue-on-failure for Stage 1 (default): judge + dashboard run even if Codex cases exit non-zero
+ * - --fail-fast: abort pipeline when any test case execution fails (CI mode)
  * - Automatic browser opening on success
  * - Output folder structure display
  * - Summary metrics reporting
  * 
  * Usage:
- *   node llm_eval_pipeline.js [excelPath] [--concurrency N]
+ *   node llm_eval_pipeline.js [excelPath] [--concurrency N] [--fail-fast]
  */
 
 const path = require("node:path");
@@ -33,9 +34,15 @@ const log = {
 function parseArgs(argv) {
   let excelPath;
   let concurrency = 1;
+  let failFast = false;
 
   for (let i = 2; i < argv.length; i += 1) {
     const token = argv[i];
+
+    if (token === "--fail-fast") {
+      failFast = true;
+      continue;
+    }
     
     if (token === "--concurrency" || token === "-c") {
       const value = Number(argv[i + 1]);
@@ -52,7 +59,7 @@ function parseArgs(argv) {
     }
   }
 
-  return { excelPath, concurrency };
+  return { excelPath, concurrency, failFast };
 }
 
 function resolveProjectRoot() {
@@ -84,14 +91,14 @@ function assertTrustedProjectRoot(root) {
 
   if (!existsSync(codexRunnerPath)) {
     throw new Error(
-      `Run from the agentskills git repo root (must contain skills/skill-test/scripts/codex_runner.js). ` +
+      `Run from the federation-ai-skill-test git repo root (must contain skills/skill-test/scripts/codex_runner.js). ` +
         `Current root: ${root}. Do not copy skill-test into work/ or other disposable folders.`
     );
   }
 
   if (!existsSync(gitDir)) {
     throw new Error(
-      `Run from the agentskills git repo root (must contain .git). ` +
+      `Run from the federation-ai-skill-test git repo root (must contain .git). ` +
         `Current root: ${root}. Do not copy skill-test into work/ — copies bypass sandbox fixes.`
     );
   }
@@ -193,9 +200,13 @@ function summarizeResults(runFolderPath) {
       const summary = JSON.parse(require("node:fs").readFileSync(summaryPath, "utf8"));
       
       console.log("\n📈 Summary Metrics:");
-      console.log(`   Total test cases: ${summary.total_cases ?? "N/A"}`);
-      console.log(`   Passed: ${summary.passed ?? "N/A"}`);
-      console.log(`   Failed: ${summary.failed ?? "N/A"}`);
+      if (summary.execution) {
+        const exec = summary.execution;
+        console.log(`   Execution — success: ${exec.successCount ?? "N/A"}, failed: ${exec.failureCount ?? "N/A"}, content-filter: ${exec.contentFilterCount ?? "N/A"}`);
+      }
+      console.log(`   Judge — total: ${summary.total_cases ?? "N/A"}`);
+      console.log(`   Judge — passed: ${summary.passed ?? "N/A"}`);
+      console.log(`   Judge — failed: ${summary.failed ?? "N/A"}`);
       if (summary.average_score !== undefined) {
         console.log(`   Average score: ${(summary.average_score * 100).toFixed(1)}%`);
       }
@@ -236,7 +247,7 @@ async function main() {
   const startTime = Date.now();
 
   try {
-    const { excelPath, concurrency } = parseArgs(process.argv);
+    const { excelPath, concurrency, failFast } = parseArgs(process.argv);
     const projectRoot = resolveProjectRoot();
     assertTrustedProjectRoot(projectRoot);
     const scriptsDir = __dirname;
@@ -251,7 +262,7 @@ async function main() {
     log.info(`Project root: ${projectRoot}`);
     log.info(`Excel path: ${excelPath || "(default)"}`);
     log.info(`Concurrency: ${concurrency}`);
-    log.info(`Error handling: fail-fast`);
+    log.info(`Stage 1 error handling: ${failFast ? "fail-fast" : "continue-on-failure (default)"}`);
 
     // ===== STAGE 1: Test Case Execution =====
     const testCaseArgs = [];
@@ -260,6 +271,9 @@ async function main() {
     }
     if (concurrency > 1) {
       testCaseArgs.push("--concurrency", String(concurrency));
+    }
+    if (failFast) {
+      testCaseArgs.push("--fail-fast");
     }
 
     runStage(
@@ -317,8 +331,27 @@ async function main() {
     console.log("\n🌐 Opening dashboard in browser...");
     openBrowser(`file://${dashboardPath}`);
 
-    log.info("\n✨ All stages completed successfully!");
-    process.exit(0);
+    const summaryPath = path.join(runFolderPath, "summary.json");
+    let pipelineExitCode = 0;
+    if (existsSync(summaryPath)) {
+      const summary = JSON.parse(require("node:fs").readFileSync(summaryPath, "utf8"));
+      const exec = summary.execution || {};
+      const execFailures = Number(exec.failureCount) || 0;
+      const judgeFailures = Number(summary.failed) || 0;
+
+      if (execFailures > 0 || judgeFailures > 0) {
+        pipelineExitCode = 1;
+        log.warn(
+          `Pipeline finished with issues: execution failures=${execFailures}, judge failures=${judgeFailures}. Dashboard was still generated.`
+        );
+      } else {
+        log.info("\n✨ All stages completed successfully!");
+      }
+    } else {
+      log.info("\n✨ All stages completed successfully!");
+    }
+
+    process.exit(pipelineExitCode);
   } catch (error) {
     log.error(`Pipeline failed: ${error.message}`);
     process.exit(1);

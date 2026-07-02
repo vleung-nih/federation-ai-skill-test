@@ -1,9 +1,0 @@
-{
-  "id": "test_case_1",
-  "prompt": "How do I search on individual Federation members data?",
-  "expectedOutput": "To search individual member data in the CCDI Data Federation, you have two options:\r\n\r\nOption 1 (Centralized): Query the unified Data Federation Resource API and use filter criteria (like namespaces or source identifiers) to isolate results from a specific repository.\r\n\r\nOption 2 (Direct): Query an individual member's server directly. Every member implements the same standard CCDI Data Federation API Specification, allowing you to hit their specific /subjects, /samples, or /files endpoints to extract member-specific metadata.",
-  "exitCode": 1,
-  "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)\n2026-06-18T18:12:02.244921Z  WARN codex_state::runtime: failed to open state db at /Users/leungvw/.codex/state_5.sqlite: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database\n2026-06-18T18:12:02.245224Z  WARN codex_rollout::state_db: failed to initialize state runtime: failed to initialize state runtime at /Users/leungvw/.codex: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database: error returned from database: (code: 8) attempt to write a readonly database: (code: 8) attempt to write a readonly database\nReading additional input from stdin...\nError: failed to initialize in-process app-server client: Operation not permitted (os error 1)\n",
-  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-141202/test_case_1/output.jsonl",
-  "timestamp": "20260618-141202"
-}

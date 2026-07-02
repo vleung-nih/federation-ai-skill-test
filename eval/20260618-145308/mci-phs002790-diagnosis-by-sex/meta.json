@@ -1,9 +1,0 @@
-{
-  "id": "mci-phs002790-diagnosis-by-sex",
-  "prompt": "/ccdi-federation-ai-copilot\n\nFor MCI study phs002790 in CCDI-DCC, fetch participant diagnosis counts broken down by sex (F, M, U, Missing). Show top diagnoses and total participant count.",
-  "expectedOutput": "CCDI-DCC phs002790 scope; ~7,023 participants; top diagnoses with F/M splits. Total participants ~7023 (±5%). Top diagnoses: Missing / not reported ~1371, Pilocytic astrocytoma ~642. QA CSV crosswalk: G-05.",
-  "exitCode": 1,
-  "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)\n2026-06-18T18:53:09.151446Z  WARN codex_state::runtime: failed to open state db at /Users/leungvw/.codex/state_5.sqlite: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database\n2026-06-18T18:53:09.151484Z  WARN codex_rollout::state_db: failed to initialize state runtime: failed to initialize state runtime at /Users/leungvw/.codex: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database: error returned from database: (code: 8) attempt to write a readonly database: (code: 8) attempt to write a readonly database\nReading additional input from stdin...\nError: failed to initialize in-process app-server client: Operation not permitted (os error 1)\n",
-  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145308/mci-phs002790-diagnosis-by-sex/output.jsonl",
-  "timestamp": "20260618-145308"
-}

@@ -1,9 +1,0 @@
-{
-  "id": "usability-vague-pediatric",
-  "prompt": "/ccdi-federation-ai-copilot\n\nShow me kids with cancer",
-  "expectedOutput": "Clarifies pediatric + diagnosis entity; cohort plan or clarifying question. QA CSV crosswalk: U-04.",
-  "exitCode": 2,
-  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
-  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/usability-vague-pediatric/output.jsonl",
-  "timestamp": "20260618-145404"
-}
