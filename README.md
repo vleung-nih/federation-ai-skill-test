@@ -1,94 +1,52 @@
-# Agent Skills Repository
+# federation-ai-skill-test
 
-This repository stores installed agent skills under `skills/` and tracks versions in `skills-lock.json`.
+LLM-as-a-Judge batch evaluation pipeline for Agent Skills. Runs Excel test cases through Codex CLI, scores responses with a judge prompt, and generates an interactive HTML dashboard.
+
+Primary use case: regression testing for the [CCDI Federation AI Copilot](https://github.com/CBIIT/ccdi-federation-ai) skill.
 
 ## Prerequisites
 
-- Node.js 18+ (or newer LTS)
-- `npx` available in your shell
+- Node.js 18+
+- [Codex CLI](https://github.com/openai/codex) on PATH (`which codex`)
+- Target skill installed (e.g. `ccdi-federation-ai-copilot`)
 
-## Skills CLI
-
-Use the Skills CLI with `npx skills` (plural):
+## Quick start
 
 ```bash
-npx skills --help
+cd /Users/leungvw/ai/federation-ai-skill-test
+npm install
+
+node skills/skill-test/scripts/llm_eval_pipeline.js \
+  skills/skill-test/example/ccdi-federation-copilot-mvp.xlsx \
+  --concurrency 2
 ```
 
-## Add a Skill
-
-Install a specific skill package from a source repo:
+Or use the npm script:
 
 ```bash
-npx skills add <owner/repo@skill>
+npm run eval:federation
 ```
 
-For this repository, prefer skills from:
+Outputs land in `eval/{timestamp}/` (dashboard.html, summary.json, per-case artifacts). A reference sample run is committed at `eval/sample-run/`.
 
-- `https://github.com/essentialsoft/agentskills`
+## Repository layout
 
-Example:
+| Path | Purpose |
+|------|---------|
+| `skills/skill-test/SKILL.md` | Agent skill definition and invocation rules |
+| `skills/skill-test/scripts/` | Pipeline orchestrator, test runner, judge, dashboard |
+| `skills/skill-test/reference/` | Judge prompt template and rubric schema |
+| `skills/skill-test/example/` | Federation MVP test catalog (xlsx) and builder script |
+| `eval/sample-run/` | Example pipeline output (2 cases) |
 
-```bash
-npx skills add essentialsoft/agentskills@code-reviewer
-```
+## Documentation
 
-Non-interactive install (useful for automation):
+- [skills/skill-test/SKILL.md](skills/skill-test/SKILL.md) — full pipeline workflow and Codex app rules
+- [skills/skill-test/example/README.md](skills/skill-test/example/README.md) — federation batch run details
+- [skills/skill-test/SYSTEM_DESIGN.md](skills/skill-test/SYSTEM_DESIGN.md) — architecture
 
-```bash
-npx skills add <owner/repo@skill> -y
-```
-
-More examples using this repo:
-
-```bash
-npx skills add essentialsoft/agentskills@git-commit
-npx skills add essentialsoft/agentskills@implementation-executor
-```
-
-After adding a skill, verify the repo changed:
-
-- New/updated files in `skills/<skill-name>/`
-- Updated `skills-lock.json`
-
-## Check for Updates
-
-See whether any installed skills have newer versions:
+## Install as an agent skill
 
 ```bash
-npx skills check
-```
-
-## Update Skills
-
-Update installed skills to the latest compatible versions:
-
-```bash
-npx skills update
-```
-
-Then review what changed:
-
-```bash
-git status --short
-git diff -- skills-lock.json skills/
-```
-
-## Typical Workflow
-
-1. Add or update skills with `npx skills add ...` or `npx skills update`.
-2. Review modifications in `skills/` and `skills-lock.json`.
-3. Run your normal validation checks.
-4. Commit the changes.
-
-## Troubleshooting
-
-If `npx skills` is not found:
-
-- Check Node installation: `node -v`
-- Check npm/npx installation: `npm -v`
-- Retry with a clean cache if needed:
-
-```bash
-npm cache verify
+npx skills add vleung-nih/federation-ai-skill-test@skill-test -a codex -g -y
 ```

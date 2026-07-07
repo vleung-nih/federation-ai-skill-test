@@ -1,9 +1,0 @@
-{
-  "id": "library-strategy-pv-explainer",
-  "prompt": "/ccdi-federation-ai-copilot\n\nWhat permissible values exist for sample.library_strategy?",
-  "expectedOutput": "Lists controlled values from bundled sample PV metadata including RNA-Seq. QA CSV crosswalk: W-08.",
-  "exitCode": 2,
-  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
-  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/library-strategy-pv-explainer/output.jsonl",
-  "timestamp": "20260618-145404"
-}

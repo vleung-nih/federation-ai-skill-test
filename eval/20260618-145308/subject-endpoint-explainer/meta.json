@@ -1,9 +1,0 @@
-{
-  "id": "subject-endpoint-explainer",
-  "prompt": "/ccdi-federation-ai-copilot\n\nWhat does the /subject endpoint do? Explain parameters and pagination. Do not fetch live data.",
-  "expectedOutput": "OpenAPI-grounded explanation of /subject GET, filters, pagination. QA CSV crosswalk: W-07.",
-  "exitCode": 1,
-  "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)\n2026-06-18T18:53:09.262800Z  WARN codex_state::runtime: failed to open state db at /Users/leungvw/.codex/state_5.sqlite: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database\n2026-06-18T18:53:09.262834Z  WARN codex_rollout::state_db: failed to initialize state runtime: failed to initialize state runtime at /Users/leungvw/.codex: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database: error returned from database: (code: 8) attempt to write a readonly database: (code: 8) attempt to write a readonly database\nReading additional input from stdin...\nError: failed to initialize in-process app-server client: Operation not permitted (os error 1)\n",
-  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145308/subject-endpoint-explainer/output.jsonl",
-  "timestamp": "20260618-145308"
-}

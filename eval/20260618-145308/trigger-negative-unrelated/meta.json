@@ -1,9 +1,0 @@
-{
-  "id": "trigger-negative-unrelated",
-  "prompt": "/ccdi-federation-ai-copilot\n\nWrite a Python script to sort a list of integers using quicksort.",
-  "expectedOutput": "General Python help without invoking CCDI federation skill behavior inappropriately.",
-  "exitCode": 1,
-  "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)\n2026-06-18T18:53:09.905925Z  WARN codex_state::runtime: failed to open state db at /Users/leungvw/.codex/state_5.sqlite: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database\n2026-06-18T18:53:09.905960Z  WARN codex_rollout::state_db: failed to initialize state runtime: failed to initialize state runtime at /Users/leungvw/.codex: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database: error returned from database: (code: 8) attempt to write a readonly database: (code: 8) attempt to write a readonly database\nReading additional input from stdin...\nError: failed to initialize in-process app-server client: Operation not permitted (os error 1)\n",
-  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145308/trigger-negative-unrelated/output.jsonl",
-  "timestamp": "20260618-145308"
-}

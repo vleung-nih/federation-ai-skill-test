@@ -1,9 +1,0 @@
-{
-  "id": "sex-counts-by-member",
-  "prompt": "/ccdi-federation-ai-copilot\n\nFetch sex distribution by CCDI federation member using the federation count endpoint. Show Female (F), Male (M), Unknown (U), and Missing for each responding node.",
-  "expectedOutput": "Uses GET /subject/by/sex/count; F/M/U/Missing per federation member. QA CSV crosswalk: G-02, B-05.",
-  "exitCode": 1,
-  "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)\n2026-06-18T18:53:09.100490Z  WARN codex_state::runtime: failed to open state db at /Users/leungvw/.codex/state_5.sqlite: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database\n2026-06-18T18:53:09.100529Z  WARN codex_rollout::state_db: failed to initialize state runtime: failed to initialize state runtime at /Users/leungvw/.codex: failed to open state DB at /Users/leungvw/.codex/state_5.sqlite: error returned from database: (code: 8) attempt to write a readonly database: error returned from database: (code: 8) attempt to write a readonly database: (code: 8) attempt to write a readonly database\nReading additional input from stdin...\nError: failed to initialize in-process app-server client: Operation not permitted (os error 1)\n",
-  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145308/sex-counts-by-member/output.jsonl",
-  "timestamp": "20260618-145308"
-}

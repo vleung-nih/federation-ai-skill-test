@@ -1,9 +1,0 @@
-{
-  "id": "usability-minimal-prompt",
-  "prompt": "/ccdi-federation-ai-copilot\n\nfemale subjects",
-  "expectedOutput": "Maps sex=F; explains what will be queried; plain language. QA CSV crosswalk: U-05.",
-  "exitCode": 2,
-  "stderr": "error: unexpected argument '--ask-for-approval' found\n\n  tip: to pass '--ask-for-approval' as a value, use '-- --ask-for-approval'\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nFor more information, try '--help'.\n",
-  "outputPath": "/Users/leungvw/ai/agentskills/eval/20260618-145404/usability-minimal-prompt/output.jsonl",
-  "timestamp": "20260618-145404"
-}

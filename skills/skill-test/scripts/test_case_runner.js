@@ -74,12 +74,27 @@ function resolveExcelPath(argvPath) {
   return path.resolve(process.cwd(), "test_cases.xlsx");
 }
 
+function deriveExecutionStatus(exitCode, blockedByContentFilter) {
+  if (blockedByContentFilter) {
+    return "content_filter";
+  }
+  if (exitCode === 0) {
+    return "completed";
+  }
+  return "failed";
+}
+
 function parseArgs(argv) {
   let excelPath;
   let concurrency = 1;
+  let failFast = false;
 
   for (let i = 2; i < argv.length; i += 1) {
     const token = argv[i];
+    if (token === "--fail-fast") {
+      failFast = true;
+      continue;
+    }
     if (token === "--concurrency" || token === "-c") {
       const value = Number(argv[i + 1]);
       if (!Number.isInteger(value) || value < 1) {
@@ -101,7 +116,7 @@ function parseArgs(argv) {
     }
   }
 
-  return { excelPath, concurrency };
+  return { excelPath, concurrency, failFast };
 }
 
 async function runWithConcurrency(items, concurrency, workerFn) {
@@ -130,6 +145,7 @@ async function runWithConcurrency(items, concurrency, workerFn) {
 
 async function runFromExcel(excelPath, options = {}) {
   const concurrency = options.concurrency ?? 1;
+  const failFast = options.failFast ?? false;
   const resolvedExcelPath = resolveExcelPath(excelPath);
   if (!existsSync(resolvedExcelPath)) {
     throw new Error(`Excel file not found: ${resolvedExcelPath}`);
@@ -236,6 +252,7 @@ async function runFromExcel(excelPath, options = {}) {
       cwd: process.cwd(),
     });
     const blockedByContentFilter = result.exitCode !== 0 && isContentFilterBlock(tracePath);
+    const executionStatus = deriveExecutionStatus(result.exitCode, blockedByContentFilter);
 
     const meta = {
       id,
@@ -245,6 +262,7 @@ async function runFromExcel(excelPath, options = {}) {
       sandbox: TEST_CASE_SANDBOX,
       exitCode: result.exitCode,
       blockedByContentFilter,
+      executionStatus,
       stderr: result.stderr || "",
       outputPath: tracePath,
       timestamp: caseTimestamp,
@@ -263,7 +281,7 @@ async function runFromExcel(excelPath, options = {}) {
     }
   });
 
-  const summary = {
+  const execution = {
     timestamp,
     runRoot,
     successCount,
@@ -274,14 +292,23 @@ async function runFromExcel(excelPath, options = {}) {
     concurrency,
     totalRows: rows.length,
   };
+  const summary = {
+    timestamp,
+    execution,
+  };
   writeFileSync(path.join(runRoot, "summary.json"), JSON.stringify(summary, null, 2), "utf8");
 
   log.info(
-    `Finished run. totalRows=${summary.totalRows}, success=${summary.successCount}, failed=${summary.failureCount}`
+    `Finished run. totalRows=${execution.totalRows}, success=${execution.successCount}, failed=${execution.failureCount}`
   );
 
   if (failureCount > 0) {
-    throw new Error(`One or more Codex executions failed (${failureCount}/${cases.length})`);
+    if (failFast) {
+      throw new Error(`One or more Codex executions failed (${failureCount}/${cases.length})`);
+    }
+    log.warn(
+      `${failureCount} case(s) failed execution; continuing (judge and dashboard can still run). Use --fail-fast to abort.`
+    );
   }
 
   return summary;
@@ -291,7 +318,10 @@ if (require.main === module) {
   (async () => {
     try {
       const args = parseArgs(process.argv);
-      await runFromExcel(args.excelPath, { concurrency: args.concurrency });
+      await runFromExcel(args.excelPath, {
+        concurrency: args.concurrency,
+        failFast: args.failFast,
+      });
     } catch (error) {
       log.error(error.message);
       process.exit(1);
@@ -301,4 +331,6 @@ if (require.main === module) {
 
 module.exports = {
   runFromExcel,
+  deriveExecutionStatus,
+  parseArgs,
 };

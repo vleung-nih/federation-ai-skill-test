@@ -12,10 +12,8 @@
 # Local tooling state
 .superpowers/
 
-# Accidental root npm artifacts
+# Node dependencies
 /node_modules/
-/package.json
-/package-lock.json
 
 # Environment files
 .env
@@ -27,8 +25,12 @@ __pycache__/
 .agents/
 skills-lock.json
 
-
 references/*
 
 # Agent-created disposable copies (not supported run paths)
 work/
+tmp/
+
+# Eval run outputs (keep sample-run only)
+eval/*
+!eval/sample-run/
