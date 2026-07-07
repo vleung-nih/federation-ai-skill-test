@@ -9,6 +9,9 @@ const EXFIL_COMMAND_PATTERNS = [
   /per_page\s*=\s*\d{3,}/i,
 ];
 
+/** Demo/fixture folders under eval/ — not pipeline run outputs. */
+const RUN_FOLDER_EXCLUDE = new Set(["sample-run"]);
+
 function isDirectory(dirPath) {
   try {
     return statSync(dirPath).isDirectory();
@@ -39,6 +42,54 @@ function resolveRunFolder(runFolderArg) {
   }
 
   throw new Error(`Run folder not found: ${runFolderArg}`);
+}
+
+/**
+ * List eval run folders (newest mtime first), excluding demo folders like sample-run.
+ */
+function listRunFolders(evalDir) {
+  if (!existsSync(evalDir)) {
+    return [];
+  }
+
+  return readdirSync(evalDir)
+    .filter((name) => {
+      if (RUN_FOLDER_EXCLUDE.has(name)) {
+        return false;
+      }
+      const fullPath = path.join(evalDir, name);
+      return isDirectory(fullPath);
+    })
+    .map((name) => {
+      const fullPath = path.join(evalDir, name);
+      return { name, mtimeMs: statSync(fullPath).mtimeMs };
+    })
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
+}
+
+/**
+ * Name of the most recently modified run folder under eval/ (post Stage 1).
+ */
+function getLatestRunFolderName(evalDir) {
+  const folders = listRunFolders(evalDir);
+  if (folders.length === 0) {
+    throw new Error(
+      `No run folders found in ${evalDir} (excluded: ${[...RUN_FOLDER_EXCLUDE].join(", ")}). ` +
+        "test_case_runner may have failed."
+    );
+  }
+  return folders[0].name;
+}
+
+function formatAverageScore(averageScore) {
+  if (averageScore === undefined || averageScore === null || Number.isNaN(averageScore)) {
+    return "N/A";
+  }
+  const value = Number(averageScore);
+  if (value <= 1) {
+    return `${(value * 100).toFixed(1)}%`;
+  }
+  return `${value.toFixed(1)}`;
 }
 
 function resolveJudgeTemplatePath(projectRoot) {
@@ -266,6 +317,10 @@ function writeJudgePrompt(promptPath, prompt) {
 
 module.exports = {
   resolveRunFolder,
+  listRunFolders,
+  getLatestRunFolderName,
+  formatAverageScore,
+  RUN_FOLDER_EXCLUDE,
   resolveJudgeTemplatePath,
   readFileSync,
   listTestCaseFolders,

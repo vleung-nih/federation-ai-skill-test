@@ -18,7 +18,8 @@
 
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
-const { existsSync, readdirSync, statSync } = require("node:fs");
+const { existsSync, readdirSync } = require("node:fs");
+const { getLatestRunFolderName, formatAverageScore } = require("./judge_utils");
 
 const log = {
   info: (msg, ...args) => console.log(`[INFO]  ${new Date().toISOString()} - ${msg}`, ...args),
@@ -208,7 +209,7 @@ function summarizeResults(runFolderPath) {
       console.log(`   Judge — passed: ${summary.passed ?? "N/A"}`);
       console.log(`   Judge — failed: ${summary.failed ?? "N/A"}`);
       if (summary.average_score !== undefined) {
-        console.log(`   Average score: ${(summary.average_score * 100).toFixed(1)}%`);
+        console.log(`   Average score: ${formatAverageScore(summary.average_score)}`);
       }
       if (summary.elapsed_seconds !== undefined) {
         console.log(`   Elapsed time: ${summary.elapsed_seconds}s`);
@@ -220,27 +221,8 @@ function summarizeResults(runFolderPath) {
 }
 
 function extractRunFolder(projectRoot) {
-  /**
-   * Extract the run folder from test_case_runner output.
-   * test_case_runner creates eval/{timestamp}/ folders.
-   * We'll use the most recent one based on the execution.
-   */
   const evalDir = path.join(projectRoot, "eval");
-  if (!existsSync(evalDir)) {
-    throw new Error("eval/ directory not created. test_case_runner may have failed.");
-  }
-
-  // Get most recent folder
-  const folders = readdirSync(evalDir)
-    .filter((f) => statSync(path.join(evalDir, f)).isDirectory())
-    .sort()
-    .reverse();
-
-  if (folders.length === 0) {
-    throw new Error("No run folders found in eval/");
-  }
-
-  return folders[0];
+  return getLatestRunFolderName(evalDir);
 }
 
 async function main() {
