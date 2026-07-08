@@ -117,7 +117,7 @@ python3 skills/skill-test/example/build_ccdi_test_xlsx.py
 ## Source of truth
 
 - Prompts and expected results: [`evals/evals.json`](../../../../federation/ccdi-federation-ai/skills/ccdi-federation-ai-copilot/evals/evals.json)
-- Manual QA crosswalk: [`CCDI-Federation-AI-Copilot-Test-Execution.csv`](../../../../federation/AI%20applications/QA/CCDI-Federation-AI-Copilot-Test-Execution.csv) (stored in Excel `maps_to_csv` column only — not in judge `expected_output`)
+- Manual QA crosswalk: [`../../docs/CCDI-Federation-AI-Copilot-Test-Execution.csv`](../../docs/CCDI-Federation-AI-Copilot-Test-Execution.csv) (stored in Excel `maps_to_csv` column only — not in judge `expected_output`)
 - Tune federation pass criteria via `expected_output` in this Excel and `LLM_as_a_judge.prompt` in skill-test (no separate QA rubrics doc)
 
 ## Not in this Excel
