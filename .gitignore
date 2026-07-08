@@ -31,6 +31,5 @@ references/*
 work/
 tmp/
 
-# Eval run outputs (keep sample-run only)
-eval/*
-!eval/sample-run/
+# Eval run outputs (local only)
+eval/

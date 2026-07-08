@@ -27,7 +27,7 @@ Or use the npm script:
 npm run eval:federation
 ```
 
-Outputs land in `eval/{timestamp}/` (dashboard.html, summary.json, per-case artifacts). A reference sample run is committed at `eval/sample-run/`.
+Outputs land in `eval/{timestamp}/` (dashboard.html, summary.json, per-case artifacts). The `eval/` folder is gitignored (local runs only).
 
 ## Repository layout
 
@@ -37,7 +37,7 @@ Outputs land in `eval/{timestamp}/` (dashboard.html, summary.json, per-case arti
 | `skills/skill-test/scripts/` | Pipeline orchestrator, test runner, judge, dashboard |
 | `skills/skill-test/reference/` | Judge prompt template and rubric schema |
 | `skills/skill-test/example/` | Federation MVP test catalog (xlsx) and builder script |
-| `eval/sample-run/` | Example pipeline output (2 cases) |
+| `eval/` | Local pipeline outputs (gitignored) |
 
 ## Documentation
 
