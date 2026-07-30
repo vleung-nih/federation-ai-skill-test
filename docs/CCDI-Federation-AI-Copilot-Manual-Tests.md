@@ -628,11 +628,26 @@ Sanity-check this cohort: is the per-node distribution reasonable? Suggest one q
 
 **Pass if:** Per-node sanity statement; one actionable refinement; no PHI.
 
+### G-03 — Brain tumor age distribution (P2) · eval: `brain-tumor-age-distribution`
+
+**Prompt:**
+```text
+/ccdi-federation-ai-copilot
+
+Using sample-diagnosis metadata with search=brain only (do not expand into other diagnosis terms, diagnosis_category PV lists, or phrase variants like "brain tumor"), show the age distribution of brain-tumor patients across the CCDI Data Federation. Deduplicate to patients where possible and report how many records have known age vs missing age.
+```
+
+**Pass if:** Uses `GET /sample-diagnosis?search=brain` only (not multi-term PV expansions or `search=brain tumor`); age bins; known vs missing age after patient dedupe; states methodology.
+
+**Baseline:** Known age ~263 (±10%); ~366 subjects / ~507 samples on prod with `search=brain` (reconfirmed 2026-07-29).
+
+---
+
 ### Golden P2 (monthly regression)
 
 | ID | Scenario | Priority |
 |----|----------|----------|
-| G-03 | Brain tumor age distribution | P2 |
+| G-03 | Brain tumor age distribution (see full prompt above) | P2 |
 | G-04 | Race distribution top 10 cancers | P2 |
 | G-06 | MCI phs002790 by federation member | P2 |
 | G-07 | Data footprint by source | P2 |
@@ -658,3 +673,4 @@ Sanity-check this cohort: is the per-node distribution reasonable? Suggest one q
 | 2.3 | 2026-06-23 | Cross-reference skill-test dashboard instead of evals harness |
 | 2.4 | 2026-06-23 | Slim Day 1 manual scope; dropped rubrics; batch-covered U/S notes |
 | 2.5 | 2026-07-08 | Added FEDERATION-605 story AC reference rows (QB/EX/SC-REF-01/02) |
+| 2.6 | 2026-07-29 | G-03 prompt pinned to search=brain only (avoid multi-term / brain-tumor strategy drift) |
