@@ -80,7 +80,7 @@ How many people are in the federation?
 Show me kids with cancer
 ```
 
-**Pass if:** General or bounded metadata answer with stated assumptions (pediatric + cancer interpretation), documented API/params, and caveats/limitations. Live bounded fetch OK for "show me". Follow-up questions optional. Fail only on confident incorrect claims or missing caveats on major ambiguities.
+**Pass if:** Either (A) identifies material ambiguity (e.g. pediatric age cutoff and/or cancer/cohort scope) and asks a focused clarifying question before fetching or asserting a definitive cohort; or (B) provides a bounded metadata answer with working assumptions (pediatric + cancer interpretation), documented API/params or planned query, and relevant caveats/limitations. Live bounded fetch OK for "show me". Fail only if invents facts with confidence, treats the vague prompt as unambiguous with no caveat or clarification, or presents incorrect API behavior as certain.
 
 ---
 
@@ -119,7 +119,7 @@ whats the diffrence between subject and sample
 What values can sex be?
 ```
 
-**Pass if:** PV list from bundled metadata (F, M, U, etc.).
+**Pass if:** Lists all four bundled subject sex codes: F, M, U, and UNDIFFERENTIATED. Labels from bundled PV metadata (Female, Male, Unknown, Intersex) and caDSR CDE 6343385 v1.00 / bundled-PV provenance are acceptable. Ignore skill version or release-check notes. Fail only if a required code is missing, a non-bundled sex code is presented as allowed, or the answer contradicts the bundled subject PV metadata.
 
 ---
 
@@ -468,7 +468,7 @@ How many neuroblastoma subjects are in each federation node?
 What values are allowed for subject sex in CCDI?
 ```
 
-**Pass if:** With skill: F, M, U, UNDIFFERENTIATED from PV metadata. Without skill: more hallucination risk.
+**Pass if:** With skill: F, M, U, UNDIFFERENTIATED from bundled PV metadata (labels/caDSR provenance OK). Without skill: more hallucination risk.
 
 ---
 
@@ -503,6 +503,8 @@ Look up the permissible values for the primary_site field within the subject met
 
 **UT-02 — Invalid field rejection (P0)** — same as L-13 / S-adjacent: `Filter subjects by eye_color=blue.`
 
+**Pass if:** States `eye_color` is not a harmonized subject field and/or not defined in bundled subject PV metadata. May present `metadata.unharmonized.eye_color=blue` as the unharmonized API filter shape. Fail only if it claims `eye_color`/`blue` is a validated harmonized controlled field/PV, or presents a bare `?eye_color=blue` filter as supported.
+
 **UT-03 — OpenAPI path check (P1)**
 
 ```text
@@ -531,7 +533,7 @@ How do I filter subjects by an unharmonized metadata field?
 | L-10 | Plan female subjects | Plan only, no live fetch |
 | L-11 | Fetch and summarize female subjects | Live GET + summary |
 | L-12 | Download raw BAM files | Metadata-only refusal |
-| L-13 | eye_color=blue filter | Field not supported |
+| L-13 | eye_color=blue filter | Not harmonized/bundled PV; unharmonized filter OK |
 | L-14 | Fetch 10 subjects | Summary, not JSON dump |
 
 Full prompts are in the CSV or v1.0 manual tests archive.
