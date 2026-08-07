@@ -16,7 +16,7 @@ U-03,Usability,casual,P0,unit,Simple participant count,"/ccdi-federation-ai-copi
 How many people are in the federation?",Honest count path or plan; no hallucinated total.,Manual: per expected column. Live API: Optional,Not Run,,
 U-04,Usability,casual,P0,unit,Vague pediatric query,"/ccdi-federation-ai-copilot
 
-Show me kids with cancer","For vague prompt: general/bounded metadata answer OK with assumptions (pediatric + cancer), API/params documented, caveats stated; live fetch OK; follow-up optional. Fail on confident incorrect claims.",Batch: skill-test. Live API: No,Not Run,,usability-vague-pediatric
+Show me kids with cancer","For vague prompt: pass if (A) identifies material ambiguity and asks a focused clarifying question before fetching/asserting a definitive cohort; or (B) bounded metadata answer with assumptions, endpoint/params, and caveats. Live fetch OK. Fail on confident invented facts or treating the prompt as unambiguous with no caveat/clarification.",Batch: skill-test. Live API: No,Not Run,,usability-vague-pediatric
 U-05,Usability,casual,P0,unit,Minimal filter prompt,"/ccdi-federation-ai-copilot
 
 female subjects",Maps sex=F; explains what will be queried.,Batch: skill-test. Live API: No,Not Run,,plan-female-subjects
@@ -25,7 +25,7 @@ U-06,Usability,casual,P0,unit,Typo tolerance,"/ccdi-federation-ai-copilot
 whats the diffrence between subject and sample",Correct distinction; patient tone.,Batch: skill-test. Live API: No,Not Run,,usability-typo-subject-sample
 U-07,Usability,casual,P0,unit,Simple PV question,"/ccdi-federation-ai-copilot
 
-What values can sex be?",PV list from bundled metadata (F M U etc.).,Batch: skill-test. Live API: No,Not Run,,subject-sex-pvs
+What values can sex be?","Lists all four codes F, M, U, UNDIFFERENTIATED. Bundled labels (Female/Male/Unknown/Intersex) and caDSR CDE 6343385 provenance OK. Ignore version-check noise. Fail only if missing code or invents non-bundled sex value.",Batch: skill-test. Live API: No,Not Run,,subject-sex-pvs
 U-08,Usability,casual,P0,unit,Raw files redirect,"/ccdi-federation-ai-copilot
 
 Can you get my raw sequencing files?",Polite refusal + metadata-only redirect.,Batch: skill-test. Live API: No,Not Run,,no-raw-files
@@ -40,7 +40,7 @@ UT-01,Unit,casual,P0,unit,race PV lookup,"/ccdi-federation-ai-copilot
 Look up the permissible values for the race field within the subject metadata schema.",Lists all race permissible values from references/pv/subject-pv-metadata.json exactly; cites bundled PV metadata; no invented values.,Lifecycle Guide unit test example. Live API: No,Not Run,,
 UT-02,Unit,casual,P0,unit,Invalid field rejection,"/ccdi-federation-ai-copilot
 
-Filter subjects by eye_color=blue.",States eye_color is not supported in PV metadata. Does not invent a valid filter.,Live API: No,Not Run,,no-invented-pv
+Filter subjects by eye_color=blue.","States eye_color is not a harmonized subject field and/or not in bundled PV metadata. May present metadata.unharmonized.eye_color=blue. Fail only if claimed as validated harmonized controlled field/PV or bare ?eye_color=blue.",Live API: No,Not Run,,no-invented-pv
 UT-03,Unit,power_user,P1,unit,OpenAPI path check,"/ccdi-federation-ai-copilot
 
 Does GET /subject-diagnosis exist in the OpenAPI specification?",Confirms from bundled openapi.yml.,Live API: No,Not Run,,
@@ -112,7 +112,7 @@ L-12,Smoke,casual,P0,workflow,Refuses raw file download,"/ccdi-federation-ai-cop
 Download the raw BAM files for tumor samples.",Clarifies metadata-only scope. Does not claim BAM files were downloaded.,Live API: No,Not Run,,no-raw-files
 L-13,Smoke,casual,P0,workflow,Does not invent unsupported PVs,"/ccdi-federation-ai-copilot
 
-Filter subjects by eye_color=blue.",States eye_color is not supported in PV metadata. Does not invent a valid filter.,Live API: No,Not Run,,no-invented-pv
+Filter subjects by eye_color=blue.","States eye_color is not a harmonized subject field and/or not in bundled PV metadata. May present metadata.unharmonized.eye_color=blue. Fail only if claimed as validated harmonized controlled field/PV or bare ?eye_color=blue.",Live API: No,Not Run,,no-invented-pv
 L-14,Smoke,casual,P1,workflow,Summarizes instead of dumping JSON,"/ccdi-federation-ai-copilot
 
 Fetch 10 subjects.",Concise summary of results. Does not paste the full raw API payload.,"Live API: Yes | Expected: GET /subject, per_page=10",Not Run,,
@@ -171,7 +171,7 @@ G-07,Golden,power_user,P2,capability,Data footprint by source,"/ccdi-federation-
 
 What is the CCDI data footprint by federation source for RNA-seq related cohorts? Report file counts and data size by source (e.g., CCDI-DCC, StJude, Treehouse).",File counts and data size by source at order-of-magnitude.,Manual live API: data-footprint-by-source (20?30 min). Batch plan-only: data-footprint-by-source-plan. Baseline: Skills Questions/ccdi_footprint_by_source.csv | P2 regression,Not Run,,data-footprint-by-source
 B-01,Compare,all,P1,capability,Neuroblastoma ? skill vs no skill,How many neuroblastoma subjects are in each federation node?,"With skill: better accuracy, correct endpoint, completes task. Without skill: worse or hallucinated.",MVP compare case. Run twice: (1) with /ccdi-federation-ai-copilot (2) fresh session without skill. Baseline: G-01,Not Run,,neuroblastoma-by-node
-B-02,Compare,all,P1,capability,Subject sex PVs ? skill vs no skill,What values are allowed for subject sex in CCDI?,"With skill: F, M, U, UNDIFFERENTIATED from PV metadata. Without skill: more hallucination risk.",MVP compare case. Run twice with and without skill in fresh sessions.,Not Run,,subject-sex-pvs
+B-02,Compare,all,P1,capability,Subject sex PVs ? skill vs no skill,What values are allowed for subject sex in CCDI?,"With skill: F, M, U, UNDIFFERENTIATED from bundled PV; labels/caDSR provenance OK. Without skill: more hallucination risk.",MVP compare case. Run twice with and without skill in fresh sessions.,Not Run,,subject-sex-pvs
 B-03,Compare,all,P1,capability,Female WGS cohort plan ? skill vs no skill,Plan a query for female subjects with WGS files.,With skill: valid endpoints/params. Without skill: may invent unsupported filters.,Run twice with and without skill.,Not Run,,
 B-04,Compare,all,P2,capability,Subject-diagnosis pagination ? skill vs no skill,Explain /subject-diagnosis pagination.,With skill: OpenAPI-aligned pagination explanation. Without skill: less accurate.,Run twice with and without skill.,Not Run,,
 B-05,Compare,all,P1,capability,Sex counts by member ? skill vs no skill,Fetch sex counts by federation member.,With skill: successful execution and error handling. Without skill: weaker.,Run twice with and without skill. Baseline: G-02,Not Run,,sex-counts-by-member
