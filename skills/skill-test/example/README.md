@@ -6,7 +6,7 @@ Excel test cases ported from the federation QA eval catalog (`evals/evals.json`)
 
 | File | Description |
 |------|-------------|
-| `ccdi-federation-copilot-mvp.xlsx` | 27 eval cases — `id`, `prompt`, `expected_output` (+ optional metadata columns) |
+| `ccdi-federation-copilot-mvp.xlsx` | 26 automated batch cases — `id`, `prompt`, `expected_output` (+ optional metadata columns) |
 | `build_ccdi_test_xlsx.py` | Regenerate xlsx when `evals.json` changes |
 
 ## Prerequisites
@@ -29,6 +29,39 @@ node skills/skill-test/scripts/llm_eval_pipeline.js \
 ```
 
 Outputs land in `eval/{timestamp}/` with `dashboard.html`.
+
+**`eval/sample-run/`** is a static demo folder (2 placeholder cases). The pipeline **does not** use it for stages 2–4; it picks the **newest timestamp folder by modification time** (excluding `sample-run`).
+
+## Single-case runs
+
+Create a one-row workbook from the MVP sheet, then run the pipeline on it:
+
+```bash
+python3 << 'PY'
+from openpyxl import load_workbook, Workbook
+CASE_ID = "neuroblastoma-by-node"  # change as needed
+src = "skills/skill-test/example/ccdi-federation-copilot-mvp.xlsx"
+dst = f"skills/skill-test/example/{CASE_ID}-only.xlsx"
+wb = load_workbook(src)
+ws = wb.active
+headers = [c.value for c in ws[1]]
+out = Workbook()
+out_ws = out.active
+out_ws.append(headers)
+for row in ws.iter_rows(min_row=2, values_only=True):
+    if row[0] == CASE_ID:
+        out_ws.append(row)
+        break
+out.save(dst)
+print("Wrote", dst)
+PY
+
+node skills/skill-test/scripts/llm_eval_pipeline.js \
+  skills/skill-test/example/neuroblastoma-by-node-only.xlsx \
+  --concurrency 1
+```
+
+After Stage 1, confirm the log line `Using run folder: 20260706-XXXXXX` (timestamp), **not** `sample-run`.
 
 ## Execution failures vs judge failures
 
@@ -84,17 +117,20 @@ python3 skills/skill-test/example/build_ccdi_test_xlsx.py
 ## Source of truth
 
 - Prompts and expected results: [`evals/evals.json`](../../../../federation/ccdi-federation-ai/skills/ccdi-federation-ai-copilot/evals/evals.json)
-- Manual QA crosswalk: [`CCDI-Federation-AI-Copilot-Test-Execution.csv`](../../../../federation/AI%20applications/QA/CCDI-Federation-AI-Copilot-Test-Execution.csv) (stored in Excel `maps_to_csv` column only — not in judge `expected_output`)
+- Manual QA crosswalk: [`../../docs/CCDI-Federation-AI-Copilot-Test-Execution.csv`](../../docs/CCDI-Federation-AI-Copilot-Test-Execution.csv) (stored in Excel `maps_to_csv` column only — not in judge `expected_output`)
 - Tune federation pass criteria via `expected_output` in this Excel and `LLM_as_a_judge.prompt` in skill-test (no separate QA rubrics doc)
 
 ## Not in this Excel
 
 - Terminal setup (L-01, L-02, L-04) — `npx skills` commands, not Codex prompts
 - Compare without-skill (B-01–B-05) — requires a second run without the skill
+- **Multi-turn MT-01** (`mt-pediatric-leukemia-rnaseq`) — manual desktop only; three prompts in one Codex thread (see QA Manual-Tests § MT-01). Excluded by `multi-turn` tag in `build_ccdi_test_xlsx.py`.
+- **Platform-filter red-team S-06 / S-07** (`security-jailbreak-dan`, `security-instruction-override`) — manual red-team only; Codex often blocks with cybersecurity FILTER. Excluded by `platform-filter-risk` tag.
+- **Live golden G-07** (`data-footprint-by-source`) — manual desktop only; long live API run. Batch uses plan-only `data-footprint-by-source-plan`. Excluded by `manual-golden` tag.
 - CSV rows without a matching `eval_id`
 
 ## Notes
 
 - Each prompt includes `/ccdi-federation-ai-copilot` so Codex routes through the skill.
 - Golden cases include baseline numbers in `expected_output` for the built-in LLM judge.
-- MT-01 is included as a single combined multi-turn prompt; skill-test runs one Codex call per row (best-effort).
+- Full eval catalog in `evals.json` is 28 cases; this Excel is the **24-case automated batch** subset (excludes `multi-turn`, `platform-filter-risk`, `manual-golden`).

@@ -27,7 +27,7 @@ Or use the npm script:
 npm run eval:federation
 ```
 
-Outputs land in `eval/{timestamp}/` (dashboard.html, summary.json, per-case artifacts). A reference sample run is committed at `eval/sample-run/`.
+Outputs land in `eval/{timestamp}/` (dashboard.html, summary.json, per-case artifacts). The `eval/` folder is gitignored (local runs only).
 
 ## Repository layout
 
@@ -37,7 +37,20 @@ Outputs land in `eval/{timestamp}/` (dashboard.html, summary.json, per-case arti
 | `skills/skill-test/scripts/` | Pipeline orchestrator, test runner, judge, dashboard |
 | `skills/skill-test/reference/` | Judge prompt template and rubric schema |
 | `skills/skill-test/example/` | Federation MVP test catalog (xlsx) and builder script |
-| `eval/sample-run/` | Example pipeline output (2 cases) |
+| `docs/` | Manual QA — execution CSV and copy-paste runbook ([docs/README.md](docs/README.md)) |
+| `eval/` | Local pipeline outputs (gitignored) |
+
+## Manual QA tracking
+
+Use alongside batch eval for cases not in the automated xlsx (setup, multi-turn, golden probes, story AC reference rows).
+
+| File | Purpose |
+|------|---------|
+| [docs/CCDI-Federation-AI-Copilot-Test-Execution.csv](docs/CCDI-Federation-AI-Copilot-Test-Execution.csv) | Record Pass / Partial / Fail and `tester_notes` |
+| [docs/CCDI-Federation-AI-Copilot-Manual-Tests.md](docs/CCDI-Federation-AI-Copilot-Manual-Tests.md) | Copy-paste prompts for Codex desktop |
+| [docs/README.md](docs/README.md) | How manual QA relates to `npm run eval:federation` |
+
+**Workflow:** run batch → open `eval/{timestamp}/dashboard.html` → run manual-only rows from Manual-Tests → update CSV.
 
 ## Documentation
 

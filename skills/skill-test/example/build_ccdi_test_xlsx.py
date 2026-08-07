@@ -17,6 +17,17 @@ EVALS_JSON = Path(
 BASELINES_DIR = EVALS_JSON.parent / "baselines"
 OUTPUT = Path(__file__).resolve().parent / "ccdi-federation-copilot-mvp.xlsx"
 
+# Evals with these tags stay in evals.json for manual QA but are excluded from batch Excel.
+# multi-turn: MT-01 (three prompts in one thread)
+# platform-filter-risk: red-team phrasing often blocked by Codex cybersecurity filter (S-06, S-07)
+# manual-golden: long live-API exploration; manual desktop only (G-07 live footprint)
+BATCH_EXCLUDE_TAGS = frozenset({"multi-turn", "platform-filter-risk", "manual-golden"})
+
+
+def include_in_batch(item: dict) -> bool:
+    tags = set(item.get("tags") or [])
+    return not tags.intersection(BATCH_EXCLUDE_TAGS)
+
 
 def load_baseline(rel_path: str) -> dict:
     return json.loads((BASELINES_DIR / Path(rel_path).name).read_text(encoding="utf-8"))
@@ -82,7 +93,10 @@ def main() -> None:
     ]
     ws.append(headers)
 
-    for item in evals:
+    included = [item for item in evals if include_in_batch(item)]
+    skipped = [item["id"] for item in evals if not include_in_batch(item)]
+
+    for item in included:
         ws.append(
             [
                 item["id"],
@@ -103,7 +117,9 @@ def main() -> None:
     ws.column_dimensions["F"].width = 18
 
     wb.save(OUTPUT)
-    print(f"Wrote {len(evals)} rows to {OUTPUT}")
+    print(f"Wrote {len(included)} batch rows to {OUTPUT}")
+    if skipped:
+        print(f"Excluded from batch (manual-only): {', '.join(skipped)}")
 
 
 if __name__ == "__main__":
